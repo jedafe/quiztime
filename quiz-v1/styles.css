@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    /*height: 100vh;*/
+    align-items: center;
+    /*background: linear-gradient(to top left, #28b487, #7dd56f);*/
+}
+h1 {
+    font-family: sans-serif;
+    font-size: 50px;
+    line-height: 1.3;
+    width: 100%;
+    padding: 30px;
+    text-align: center;
+    color: white;
+}
+
+.option,.option-label {
+    margin-right: 10px;
+    cursor: pointer;
+}
+button{
+    min-width: 110px;
+    margin-bottom: 12px;
+}
+/*.info-1 {*/
+/*    font-size: 15px;*/
+/*    display: flex;*/
+/*    justify-content: space-between;*/
+/*    text-align: left;*/
+/*}*/
+/*.info-box {*/
+/*    margin: 0 auto;*/
+/*    text-align: center;*/
+/*    width: 300px;*/
+/*}*/
+
+progress {
+    height: 10px !important;
+}
+
+.error-info {
+    background: transparent !important;
+    text-align: center;
+    font-size: 14px;
+}
+.stat-value, .stat-title {
+    font-size: 1rem;
+}
+
+.score, .grade {
+    font-size: 1.7rem !important;
+}
+
+.score-value, .grade-value {
+    font-size: 2rem !important;
+}
+.stat {
+    display: inline-grid;
+    width: 100px !important;
+    padding: 0 !important;
+}
+.count-down-timers {
+    display: flex;
+    gap: 0.5rem;
+}
+/*.option:checked + label {*/
+/*    border-color: darkviolet;*/
+/*}*/
+
+/*input[type = 'radio']:checked {*/
+/*    background-color: #00c46a;*/
+/*}*/

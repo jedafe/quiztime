@@ -1,0 +1,295 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>General Purpose Question and Brain Teaser</title>
+  <meta name="author" content="name">
+  <meta name="description" content="description here">
+  <meta name="keywords" content="keywords,here">
+
+    <link rel="stylesheet" href="tailwind.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="modal.css">
+
+</head>
+<body class="font-sans leading-normal tracking-normal bg-gray-900 opacity-75">
+
+<!--Header-->
+<div class="w-full mb-20 p-0 bg-cover bg-center height: 60vh; height:460px;">
+  <div class="container  max-w-4xl mx-auto pt-16 md:pt-32 text-center break-normal">
+    <!--Title-->
+    <p class="text-white mb-4 font-extrabold text-3xl md:text-5xl">
+      Brag Quiz
+    </p>
+    <p class="text-xl md:text-2xl text-gray-500">General Purpose Question and Brain Teaser</p>
+
+  </div>
+</div>
+
+<!--Container-->
+<div class="container px-4 md:px-0 max-w-6xl mx-auto -mt-2">
+
+  <div class="mx-0 sm:mx-6">
+
+    <div class="w-full text-xl md:text-2xl text-gray-800 leading-normal rounded-t">
+
+      <!--Lead Card-->
+      <div class="flex h-full bg-white rounded overflow-hidden shadow-lg pb-24"
+           style="background-image:url('header.png');">
+        <div class="container pt-12 md:pt-16 mx-auto flex flex-wrap flex-col md:flex-row items-center">
+          <!--Left Col-->
+          <div class="flex flex-col w-full xl:w-2/5 justify-center lg:items-start">
+
+            <div
+                    class="card mx-auto w-90 md:w-4/5 shadow-xl transform -rotate-2 transition hover:scale-60 duration-700 ease-in-out hover:rotate-2">
+<!--              <figure><img src="https://placeimg.com/640/480/nature" alt="Shoes" class="w-full h-10" /></figure>-->
+              <div class="bg-gray-900 opacity-75 rounded-xl card-body start-box">
+                <h2 class="card-title text-teal-600 font-bold text-3xl text-primary uppercase">Welcome!</h2>
+                <p class="text-white font-normal text-xl">Click on the "START QUIZ" button to begin.</p>
+                <div class="card-actions justify-between">
+                  <button class="btn btn-primary create-quiz">Create Quiz</button>
+                  <button class="btn btn-primary start-button">Start Quiz</button>
+                </div>
+              </div>
+
+
+
+
+              <div class="bg-gray-900 opacity-75 rounded text-center card-body info-box">
+                <div class="count-up-timers text-white text-xl">
+                  <span id="count-up-min" class="timer">00</span> :
+                  <span id="count-up-sec" class="timer">00</span>
+                </div>
+                <progress class="progress progress-secondary w-full mb-2" value="1" max="8"></progress>
+                <h2 class= "text-2xl text-white font-bold mb-4 question-info">Question <span class="question-number">1
+              </span> of <span class="total-question">100</span></h2>
+              <div class="stats shadow bg-gray-900 opacity-75">
+
+                <div class="stat place-items-center">
+                  <div class="stat-title">Attempted</div>
+                  <div class="stat-value text-secondary attempted">0</div>
+                </div>
+
+                <div class="stat place-items-center">
+                  <div class="stat-title">Correct</div>
+                  <div class="stat-value text-secondary correct">0</div>
+                </div>
+
+                <div class="stat place-items-center">
+                  <div class="stat-title">Point</div>
+                  <div class="stat-value text-secondary points">0</div>
+                </div>
+
+              </div>
+
+              <div class="stats shadow bg-gray-900 opacity-75">
+
+                <div class="stat place-items-center">
+                  <div class="stat-title">Skipped</div>
+                  <div class="stat-value text-secondary skipped">0</div>
+                </div>
+
+                <div class="stat place-items-center">
+                  <div class="stat-title">Wrong</div>
+                  <div class="stat-value text-secondary wrong">0</div>
+                </div>
+
+                <div class="stat place-items-center">
+                  <div class="stat-title">Avg Score</div>
+                  <div class="stat-value text-secondary average-score">0</div>
+                </div>
+
+              </div>
+              </div>
+
+              <button class="btn btn-secondary create-new-quiz" style="display: none;">Add New Question</button>
+              <button class="btn btn-secondary start-quiz-button" style="display: none;">Start Quiz</button>
+
+            </div>
+
+          </div>
+
+          <!--Right Col-->
+          <div class="w-full xl:w-3/5 p-12 overflow-hidden">
+              <article class="rounded-xl bg-gray-900 opacity-75 p-4" id="new-quiz">
+                <div class="text-white font-bold mb-2 text-center mx-auto text-lg"  id="category">
+                </div>
+                <div class="flex items-center">
+                  <img
+                          alt="Developer"
+                          src="https://images.unsplash.com/photo-1614644147724-2d4785d69962?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=928&q=80"
+                          class="h-12 w-12 rounded-xl object-cover"
+                  />
+
+                  <div class="w-full ml-3 flex justify-between">
+                    <h3 id="question" class="text-lg text-3xl md:text-2xl font-bold ml-3  text-white">Quiz
+                      Question?</h3>
+                    <p class="text-lg text-xl md:text-1xl font-medium ml-3  text-white text-left info-button">Correct!
+                    </p>
+                    <div class="count-down-timers text-white text-lg text-right">
+                      <h2 class="card-title text-right" ><span class="badge badge-secondary">
+                    <span id="count-down-min" class="timer">00</span> :
+                    <span id="count-down-sec" class="timer">00</span></span> </h2>
+                    </div>
+
+                  </div>
+                </div>
+
+                <div class="mt-4 space-y-2 option-body text-white">
+                  <label
+                          class="block h-full rounded-lg border border-gray-700 p-4 hover:border-gray-500 font-medium text-white option-label" id="label-a" >
+                    <input type="radio" class="radio option" name="quiz" id="1" />
+                    <span id="option-a">
+                  Option A </span>
+                  </label>
+                  <label
+                          class="block h-full rounded-lg border border-gray-700 p-4 hover:border-gray-500 font-medium text-white option-label" id="label-b">
+                    <input class="radio option" type="radio" name="quiz" id="2" >
+                    <span id="option-b">
+                  Option B </span>
+                  </label>
+                  <label
+                          class="block h-full rounded-lg border border-gray-700 p-4 hover:border-gray-500 font-medium text-white option-label" id="label-c">
+                    <input class="radio option" type="radio" name="quiz" id="3">
+                    <span id="option-c">
+                  Option C </span>
+                  </label>
+                  <label
+                          class="block h-full rounded-lg border border-gray-700 p-4 hover:border-gray-500 font-medium text-white option-label" id="label-d">
+                    <input class="radio option" type="radio" name="quiz" id="4" >
+                    <span id="option-d">
+                  Option D </span>
+                  </label>
+                </div>
+
+                <div class="text-secondary error-info"></div>
+
+                <div class="mt-8 mb-4 text-center quiz-buttons flex justify-center flex-wrap">
+                  <button class="btn mr-2 quiz-button" id="skip">Skip</button>
+                  <!--                <button class="btn mr-2 quiz-button" id="prev">Prev</button>-->
+                  <button class="btn mr-2 quiz-button" id="next">Next</button>
+                  <button class="btn mr-2 quiz-button" id="check">Check</button>
+                  <button onclick="location.reload()" class="btn quiz-button" id="restart">Restart</button>
+                </div>
+
+              </article>
+
+            <form class="rounded-xl bg-gray-900 opacity-75 p-4" id="create-new-quiz">
+              <div class="flex items-center">
+
+
+                <div class="w-full ml-3 flex justify-between">
+                  <h3 id="new-question"
+                      class="text-lg text-3xl md:text-2xl font-bold ml-3  text-white text-center m-0 mx-auto">Add New Question</h3>
+
+
+                </div>
+              </div>
+
+              <div class="mt-4 space-y-2 text-white" id="option-parent">
+                <label
+                        class="block h-full rounded-lg font-medium text-white">
+                  <textarea class="input textarea w-full h-24" placeholder="Your question?"
+                            name="question" required></textarea>
+
+                </label>
+                <label
+                        class="block h-full rounded-lg font-medium text-white">
+                  <select class="input select w-full" name="category">
+                    <option disabled selected>Category</option>
+                    <option>Database</option>
+                    <option>Programming</option>
+                    <option>Web Development</option>
+                    <option>Networking</option>
+                  </select>
+                </label>
+                <label
+                        class="block h-full rounded-lg font-medium text-white">
+                  <select class="input select w-full" id="quiz-type" onchange="run()">
+                    <option disabled selected>Question Type</option>
+                    <option value="true-false">True/False</option>
+                    <option value="single-select">Single Select</option>
+                    <option value="multi-select">Multi Select</option>
+                  </select>
+                </label>
+
+                <div class="quiz-type"></div>
+
+              </div>
+
+              <div class="text-secondary error-info"></div>
+
+            </form>
+
+          </div>
+
+          <div class="mx-auto md:pt-16">
+            <p class="font-bold pb-8 lg:pb-6 text-center text-secondary">
+              Download our app:
+            </p>
+            <div class="flex w-full justify-center md:justify-start pb-24 lg:pb-0 fade-in">
+              <img src="App%20Store.svg" class="h-12 pr-12 transform hover:scale-125 duration-300 ease-in-out" alt="">
+              <img src="Play%20Store.svg" class="h-12 transform hover:scale-125 duration-300 ease-in-out" alt="">
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!--/Lead Card-->
+
+    </div>
+
+  </div>
+
+
+</div>
+
+
+<footer class="bg-gray-800 mt-20">
+  <div class="container max-w-6xl mx-auto flex items-center px-2 py-8">
+
+    <div class="w-full mx-auto flex flex-wrap items-center">
+      <div class="flex w-full md:w-1/2 justify-center md:justify-start text-white font-extrabold"> Copyright &copy;
+        2023 - &nbsp;
+        <a class="text-gray-900 no-underline hover:text-gray-900 hover:no-underline" href="https://www.braghq.com">
+            <span class="text-base text-gray-200"> Brag Quiz</span>
+        </a>
+      </div>
+      <div class="flex w-full pt-2 content-center justify-between md:w-1/2 md:justify-end">
+        <ul class="list-reset flex justify-center flex-1 md:flex-none items-center">
+          <li>
+            <a class="inline-block py-2 px-3 text-white no-underline" href="#">Quiz</a>
+          </li>
+          <li>
+            <a class="inline-block text-gray-600 no-underline hover:text-gray-200 hover:underline py-2 px-3"
+               href="#">Poll</a>
+          </li>
+          <li>
+            <a class="inline-block text-gray-600 no-underline hover:text-gray-200 hover:underline py-2 px-3"
+               href="#">Calculator</a>
+          </li>
+          <li>
+            <a class="inline-block text-gray-600 no-underline hover:text-gray-200 hover:underline py-2 px-3"
+               href="#">Countdown</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+
+
+  </div>
+</footer>
+
+<!--<div class="modal hidden">-->
+<!--  <button class="close-modal">&times;</button>-->
+
+<!--</div>-->
+<!--<div class="overlay hidden"></div>-->
+<script src="quiz.js"></script>
+<!--<script src="modal.js"></script>-->
+</body>
+</html>
