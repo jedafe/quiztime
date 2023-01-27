@@ -189,9 +189,9 @@ let quizOBJ = JSON.parse(quizDB)
 
 // RANDOMIZE the Quiz Object (quizOBJ) to generate a Unique Randomize Question everytime.
 var randomQuestionaire = [];
-while(randomQuestionaire.length < quizOBJ.length) {
+while (randomQuestionaire.length < quizOBJ.length) {
     var r = Math.floor(Math.random() * quizOBJ.length);
-    if(randomQuestionaire.indexOf(quizOBJ[r]) === -1) randomQuestionaire.push(quizOBJ[r]);
+    if (randomQuestionaire.indexOf(quizOBJ[r]) === -1) randomQuestionaire.push(quizOBJ[r]);
 }
 
 
@@ -241,6 +241,7 @@ function startQuiz() {
 
     document.querySelector('#create-new-quiz').style.display = 'none'
 }
+
 startQuiz()
 
 startButton.addEventListener('click', () => {
@@ -280,8 +281,8 @@ createNewButton.addEventListener('click', () => {
 function loadInfo() {
     infoBox.style.display = 'block'
     startBox.style.display = 'none'
-    progress.value =  questionNumber
-    progress.max =  totalQuestion
+    progress.value = questionNumber
+    progress.max = totalQuestion
     document.querySelector('.question-number').textContent = questionNumber
     document.querySelector('.total-question').textContent = totalQuestion
     document.querySelector('.attempted').textContent = attemptedQuestion
@@ -299,8 +300,8 @@ function loadOptions() {
     questions.textContent = newQuestion.question;
     let allOptions = ``;
 
-    for (let i = 0; i < newQuestion.options.length; i++){
-        allOptions +=`
+    for (let i = 0; i < newQuestion.options.length; i++) {
+        allOptions += `
         <label class="block h-full rounded-lg border border-gray-700 p-4 hover:border-gray-500 font-medium text-white option-label" id="label-${i}">
             <input type="radio" class="radio option" id="${i}" name="quiz" />
             <span> ${newQuestion.options[i]}</span>
@@ -319,109 +320,109 @@ function loadQuestion() {
     document.querySelector('.info-button').style.backgroundColor = "transparent";
 }
 
-    const countDown = function () {
+const countDown = function () {
 
-        let count = timeLapse
-        let counter = setInterval(function () {
-            const minute = Math.floor((count / 60)) % 60
-            const seconds = Math.floor(count) % 60
-            countDownMin.innerHTML = formatTime(minute);
-            countDownSec.innerHTML = formatTime(seconds);
-            count--;
-
-            if (count === -1) {
-                loadResult();
-                clearInterval(counter)
-                questions.innerHTML = `Time  Elapsed!!!`
-            }
-        }, 1000);
-    }
-
-    const countUp = function () {
-
-        let count = 0
-        let counter = setInterval(function () {
-            const minute = Math.floor((count / 60)) % 60
-            const seconds = Math.floor(count) % 60
-            countUpMin.innerHTML = formatTime(minute);
-            countUpSec.innerHTML = formatTime(seconds);
-            count++;
-            usedTimeCounter++
-
-            if (count === timeLapse) {
-                loadResult();
-                clearInterval(counter)
-                countUpTimer.innerHTML = `Time Up!!!`
-            }
-        }, 1000);
-    }
-
-    function finishedTime() {
-        const usedTime = usedTimeCounter
-        const minute = Math.floor((usedTime / 60)) % 60
-        const seconds = Math.floor(usedTime) % 60
-
-        return `<h2 class="card-title text-right justify-center" ><div class="badge badge-secondary"> ${formatTime(minute)} : ${formatTime(seconds)} </div> </h2>`
-
-    }
-
-    function fullTimeLapse() {
-        const quizTime = timeLapse
-        const minute = Math.floor((quizTime / 60)) % 60
-        const seconds = Math.floor(quizTime) % 60
+    let count = timeLapse
+    let counter = setInterval(function () {
+        const minute = Math.floor((count / 60)) % 60
+        const seconds = Math.floor(count) % 60
         countDownMin.innerHTML = formatTime(minute);
         countDownSec.innerHTML = formatTime(seconds);
+        count--;
 
-    }
+        if (count === -1) {
+            loadResult();
+            clearInterval(counter)
+            questions.innerHTML = `Time  Elapsed!!!`
+        }
+    }, 1000);
+}
 
-    function formatTime(time) {
-        return (time < 10) ? `0${time}` : time;
-    }
+const countUp = function () {
+
+    let count = 0
+    let counter = setInterval(function () {
+        const minute = Math.floor((count / 60)) % 60
+        const seconds = Math.floor(count) % 60
+        countUpMin.innerHTML = formatTime(minute);
+        countUpSec.innerHTML = formatTime(seconds);
+        count++;
+        usedTimeCounter++
+
+        if (count === timeLapse) {
+            loadResult();
+            clearInterval(counter)
+            countUpTimer.innerHTML = `Time Up!!!`
+        }
+    }, 1000);
+}
+
+function finishedTime() {
+    const usedTime = usedTimeCounter
+    const minute = Math.floor((usedTime / 60)) % 60
+    const seconds = Math.floor(usedTime) % 60
+
+    return `<h2 class="card-title text-right justify-center" ><div class="badge badge-secondary"> ${formatTime(minute)} : ${formatTime(seconds)} </div> </h2>`
+
+}
+
+function fullTimeLapse() {
+    const quizTime = timeLapse
+    const minute = Math.floor((quizTime / 60)) % 60
+    const seconds = Math.floor(quizTime) % 60
+    countDownMin.innerHTML = formatTime(minute);
+    countDownSec.innerHTML = formatTime(seconds);
+
+}
+
+function formatTime(time) {
+    return (time < 10) ? `0${time}` : time;
+}
 
 
-    function checkedOption() {
-        const options = document.querySelectorAll('.option')
-        let answer = undefined;
-        options.forEach((option) => {
-            if (option.checked) {
-                answer = option.id
-            }
+function checkedOption() {
+    const options = document.querySelectorAll('.option')
+    let answer = undefined;
+    options.forEach((option) => {
+        if (option.checked) {
+            answer = option.id
+        }
 
-        })
-        return answer
-    }
+    })
+    return answer
+}
 
-    function checkedIsCorrectOption() {
-        const options = document.querySelectorAll('.option')
-        const optionLabels = document.querySelectorAll('.option-label')
-        infoButton.textContent = 'Correct!'
-        document.querySelector('.info-button').style.color = "green"
+function checkedIsCorrectOption() {
+    const options = document.querySelectorAll('.option')
+    const optionLabels = document.querySelectorAll('.option-label')
+    infoButton.textContent = 'Correct!'
+    document.querySelector('.info-button').style.color = "green"
 
-        options.forEach((option) => {
-            if (option.checked) option.style.backgroundColor = "green"
-        })
+    options.forEach((option) => {
+        if (option.checked) option.style.backgroundColor = "green"
+    })
 
-        optionLabels.forEach((optionLabel) => {
-            if (optionLabel.id === "label-" + checkedOption())
-                optionLabel.style.borderColor = "green"
-        })
-    }
+    optionLabels.forEach((optionLabel) => {
+        if (optionLabel.id === "label-" + checkedOption())
+            optionLabel.style.borderColor = "green"
+    })
+}
 
-    function checkedIsWrongOption() {
-        const options = document.querySelectorAll('.option')
-        const optionLabels = document.querySelectorAll('.option-label')
-        infoButton.textContent = 'Wrong!'
-        document.querySelector('.info-button').style.color = "#d926a9";
+function checkedIsWrongOption() {
+    const options = document.querySelectorAll('.option')
+    const optionLabels = document.querySelectorAll('.option-label')
+    infoButton.textContent = 'Wrong!'
+    document.querySelector('.info-button').style.color = "#d926a9";
 
-        options.forEach((option) => {
-            if (option.checked) option.style.backgroundColor = "#d926a9"
-        })
+    options.forEach((option) => {
+        if (option.checked) option.style.backgroundColor = "#d926a9"
+    })
 
-        optionLabels.forEach((optionLabel) => {
-            if (optionLabel.id === "label-" + checkedOption())
-                optionLabel.style.borderColor = "#d926a9"
-        })
-    }
+    optionLabels.forEach((optionLabel) => {
+        if (optionLabel.id === "label-" + checkedOption())
+            optionLabel.style.borderColor = "#d926a9"
+    })
+}
 
 // function toggleOption() {
 //     options.forEach((option) => {
@@ -429,94 +430,69 @@ function loadQuestion() {
 //     })
 // }
 
-    function disableOption() {
-        const options = document.querySelectorAll('.option')
-        options.forEach((option) => {
-            option.disabled = true
-        })
-    }
-
-    function enableOption() {
-        const options = document.querySelectorAll('.option')
-        options.forEach((option) => {
-            option.disabled = false
-        })
-    }
-
-    function disableButton() {
-        buttons.forEach((button) => {
-            button.disabled = true
-        })
-    }
-
-    function enableButton() {
-        buttons.forEach((button) => {
-            button.disabled = false
-        })
-    }
-
-    function clearSelected() {
-        const options = document.querySelectorAll('.option')
-        const optionLabels = document.querySelectorAll('.option-label')
-        options.forEach((option) => {
-            option.checked = false;
-            option.style.backgroundColor = ""
-        })
-        optionLabels.forEach((optionLabel) => {
-            optionLabel.style.borderColor = ""
-        })
-    }
-
-    nextButton.addEventListener('click', () => {
-        document.querySelector('.error-info').textContent = ""
-        countDownTimer.style.display = "block"
-        enableOption()
-        document.querySelector('#skip').disabled = false;
-        let myAnswer = checkedOption()
-
-        if (myAnswer) {
-            attemptedQuestion++
-            if (myAnswer == randomQuestionaire[questionPage].answer) {
-                correctAnswer++
-                myPoints += 3
-                averageScore = (myPoints / randomQuestionaire.length).toFixed(2);
-            } else {
-                wrongAnswer++
-            }
-            questionNumber++
-            questionPage++
-
-            if (questionPage < randomQuestionaire.length) {
-                loadInfo()
-                loadQuestion()
-                clearSelected()
-
-                document.querySelector('#restart').disabled = true;
-            } else {
-                loadInfo()
-                loadResult()
-                countDownTimer.innerHTML = `Time Spent ${finishedTime()}`;
-                infoButton.style.display = 'none'
-                countUpTimer.style.display = 'none'
-            }
-        } else {
-            document.querySelector('.error-info').textContent = "Select an option to continue"
-        }
+function disableOption() {
+    const options = document.querySelectorAll('.option')
+    options.forEach((option) => {
+        option.disabled = true
     })
+}
 
-    skipButton.addEventListener('click', () => {
-        document.querySelector('.error-info').textContent = ""
+function enableOption() {
+    const options = document.querySelectorAll('.option')
+    options.forEach((option) => {
+        option.disabled = false
+    })
+}
 
+function disableButton() {
+    buttons.forEach((button) => {
+        button.disabled = true
+    })
+}
+
+function enableButton() {
+    buttons.forEach((button) => {
+        button.disabled = false
+    })
+}
+
+function clearSelected() {
+    const options = document.querySelectorAll('.option')
+    const optionLabels = document.querySelectorAll('.option-label')
+    options.forEach((option) => {
+        option.checked = false;
+        option.style.backgroundColor = ""
+    })
+    optionLabels.forEach((optionLabel) => {
+        optionLabel.style.borderColor = ""
+    })
+}
+
+nextButton.addEventListener('click', () => {
+    document.querySelector('.error-info').textContent = "";
+    countDownTimer.style.display = "block";
+    enableOption();
+    document.querySelector('#skip').disabled = false;
+    let myAnswer = checkedOption();
+
+    if (myAnswer) {
+        attemptedQuestion++
+        if (myAnswer == randomQuestionaire[questionPage].answer) {
+            correctAnswer++
+            myPoints += 3
+            averageScore = (myPoints / randomQuestionaire.length).toFixed(2);
+        } else {
+            wrongAnswer++
+        }
         questionNumber++
         questionPage++
-        skippedQuestion++
+
         if (questionPage < randomQuestionaire.length) {
-            clearSelected()
-            loadQuestion()
             loadInfo()
-            if (attemptedQuestion > 0) {
-                document.querySelector('#restart').disabled = true;
-            }
+            loadQuestion()
+            clearSelected()
+
+            document.querySelector('#restart').disabled = true;
         } else {
             loadInfo()
             loadResult()
@@ -524,8 +500,33 @@ function loadQuestion() {
             infoButton.style.display = 'none'
             countUpTimer.style.display = 'none'
         }
+    } else {
+        document.querySelector('.error-info').textContent = "Select an option to continue";
+    }
+})
 
-    })
+skipButton.addEventListener('click', () => {
+    document.querySelector('.error-info').textContent = ""
+
+    questionNumber++
+    questionPage++
+    skippedQuestion++
+    if (questionPage < randomQuestionaire.length) {
+        clearSelected()
+        loadQuestion()
+        loadInfo()
+        if (attemptedQuestion > 0) {
+            document.querySelector('#restart').disabled = true;
+        }
+    } else {
+        loadInfo()
+        loadResult()
+        countDownTimer.innerHTML = `Time Spent ${finishedTime()}`;
+        infoButton.style.display = 'none'
+        countUpTimer.style.display = 'none'
+    }
+
+})
 
 
 // prevButton.addEventListener('click', () => {
@@ -539,28 +540,28 @@ function loadQuestion() {
 //
 // })
 
-    checkAnswer.addEventListener('click', () => {
-        document.querySelector('.error-info').textContent = ""
-        countDownTimer.style.display = "none"
-        let myAnswer = checkedOption()
-        if (myAnswer) {
-            disableOption()
-            document.querySelector('#skip').disabled = true;
-            if (myAnswer == randomQuestionaire[questionPage].answer) {
-                checkedIsCorrectOption()
-            } else {
-                checkedIsWrongOption()
-            }
+checkAnswer.addEventListener('click', () => {
+    document.querySelector('.error-info').textContent = ""
+    countDownTimer.style.display = "none"
+    let myAnswer = checkedOption()
+    if (myAnswer) {
+        disableOption()
+        document.querySelector('#skip').disabled = true;
+        if (myAnswer == randomQuestionaire[questionPage].answer) {
+            checkedIsCorrectOption()
         } else {
-            document.querySelector('.error-info').textContent = "Select an option first"
+            checkedIsWrongOption()
         }
-    })
+    } else {
+        document.querySelector('.error-info').textContent = "Select an option first"
+    }
+})
 
-    function loadResult() {
+function loadResult() {
     categoryEl.textContent = '';
-        let percentageScore = correctAnswer / randomQuestionaire.length * 100;
-        progress.style.display = 'none';
-        optionBody.innerHTML = `<div class="text-center">
+    let percentageScore = correctAnswer / randomQuestionaire.length * 100;
+    progress.style.display = 'none';
+    optionBody.innerHTML = `<div class="text-center">
 
                 <div class="stat place-items-center">
                   <div class="stat-title score">Score</div>
@@ -576,9 +577,9 @@ function loadQuestion() {
                 </div>
                 </div>
 <p class="text-center">You got <span class="text-secondary">${correctAnswer}</span> out of <span class="text-secondary">${totalQuestion}</span> questions</p>`
-        disableButton();
-        document.querySelector('#restart').disabled = false;
-        questions.textContent = 'The End!'
-        document.querySelector('.question-info').innerHTML = `${percentageScore < 60 ? 'Try Again!!!' : 'Congratulations!!!'}`
-    }
-    //
+    disableButton();
+    document.querySelector('#restart').disabled = false;
+    questions.textContent = 'The End!'
+    document.querySelector('.question-info').innerHTML = `${percentageScore < 60 ? 'Try Again!!!' : 'Congratulations!!!'}`
+}
+
