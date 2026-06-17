@@ -1,35 +1,117 @@
-# AGENTS.md
+# AGENTS.md — quiz-v7
 
-## Project Structure
+## Architecture
 
-This is a multi-version quiz application (quiz-v1 through quiz-v6). Each version is a **standalone, self-contained HTML/CSS/JS project** with no build system.
+Full-stack monorepo: **FastAPI** (Python) backend + **SvelteKit** (TypeScript) frontend.
 
-- `quiz-v1` through `quiz-v6`: Independent quiz implementations (v6 is most feature-complete)
-- `randomize-or-shuffle-array`: Standalone utility for shuffling arrays
-- Root `package.json`: Only defines dependencies (Tailwind CSS, DaisyUI) — no scripts
+```
+quiz-v7/
+├── backend/    → FastAPI + SQLAlchemy + PostgreSQL
+├── frontend/   → SvelteKit + Tailwind + DaisyUI
+└── docker-compose.yml
+```
 
 ## Running
 
-Open any version directly in a browser:
+**Docker (fastest):**
+```bash
+docker-compose up
+# Frontend: http://localhost:5173
+# Backend: http://localhost:8000/docs
 ```
-open quiz-v6/index.html
+
+**Manual:**
+```bash
+# Backend
+cd backend && python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt && cp .env.example .env
+python seed.py  # creates admin/demo users + sample quiz
+uvicorn app.main:app --reload
+
+# Frontend (separate terminal)
+cd frontend && npm install && npm run dev
 ```
-No build step required. Tailwind CSS is pre-compiled (tailwind.css files in each directory).
 
-## Key Technical Details
+## Key Commands
 
-- **Styling**: Tailwind CSS + DaisyUI plugin (configured in root `tailwind.config.js`)
-- **Data persistence**: Quiz questions stored in `localStorage` under key `questionBank`
-- **Quiz types**: Single-select, multi-select, and true/false (v6 only)
-- **Scoring**: 3 points per correct answer; grading thresholds: ≤40% Fail, ≤59% Pass, ≤69% Good, >69% Excellent
+```bash
+# Backend
+uvicorn app.main:app --reload          # dev server
+python seed.py                          # seed demo data
+python -m pytest tests/ -q             # run tests (uses SQLite aiosqlite)
 
-## Version Differences
+# Frontend
+npm run dev                             # dev server (port 5173)
+npm run build                           # production build
+npm run check                           # type-check
+npm run test                            # run vitest tests
+```
 
-- v1: Basic single-select only, simpler question format (a/b/c/d properties)
-- v6: Adds quiz creation form, multiple question types, category selection, modal support
+## Default Credentials
+
+| User  | Password | Role  |
+|-------|----------|-------|
+| admin | admin123 | admin |
+| demo  | demo123  | user  |
+
+## API Structure
+
+All endpoints prefixed with `/api/`:
+
+| Route | Auth | Purpose |
+|-------|------|---------|
+| `POST /auth/register` | No | Create account |
+| `POST /auth/login` | No | Get JWT token |
+| `GET /auth/me` | Yes | Current user |
+| `GET /quizzes` | No | List quizzes |
+| `POST /quizzes` | Yes | Create quiz |
+| `GET /quizzes/{id}` | No | Quiz detail (answers hidden) |
+| `GET /quizzes/{id}/manage` | Yes (owner) | Quiz with answers |
+| `PUT /quizzes/{id}` | Yes (owner) | Update quiz |
+| `DELETE /quizzes/{id}` | Yes (owner) | Delete quiz |
+| `POST /questions/{quizId}` | Yes (owner) | Add question |
+| `PUT /questions/{id}` | Yes (owner) | Update question |
+| `DELETE /questions/{id}` | Yes (owner) | Delete question |
+| `GET /categories` | No | List categories |
+| `POST /categories` | Admin | Create category |
+| `POST /attempts` | Yes | Submit quiz attempt |
+| `GET /attempts/mine` | Yes | User's attempt history |
+| `GET /attempts/quiz/{id}/stats` | No | Quiz statistics |
+
+## Data Model
+
+- **User**: id, username, email, hashed_password, role (`admin`|`user`)
+- **Quiz**: id, title, description, created_by FK
+- **Question**: id, quiz_id FK, category_id FK, type, text, options (JSON), answer (JSON)
+- **Category**: id, name
+- **QuizAttempt**: id, quiz_id FK, user_id FK, answers (JSON), score, total, time_spent
+
+## Frontend Routes
+
+| Path | Page |
+|------|------|
+| `/` | Landing page |
+| `/login` | Login form |
+| `/register` | Registration form |
+| `/quizzes` | Browse all quizzes |
+| `/quizzes/[id]` | Quiz detail + start |
+| `/quizzes/[id]/take` | Quiz player (timer, check, skip) |
+| `/quizzes/[id]/results` | Score + grade display |
+| `/quizzes/[id]/edit` | Edit quiz + manage questions |
+| `/dashboard` | User's quizzes + attempt history |
+| `/create` | Create new quiz |
+| `/docs` | Documentation hub |
+| `/docs/developer` | Developer guide |
+| `/docs/admin` | Admin guide |
+| `/docs/user` | User guide |
 
 ## Gotchas
 
-- No tests, linter, or formatter configured
-- `node_modules/` not installed (run `npm install` if you need Tailwind CLI)
-- Each version has its own copy of Tailwind CSS — changes to root `tailwind.config.js` won't affect existing versions without recompilation
+- **Scoring is server-side only** — never trust client-side answer validation for persistence
+- **Answers hidden** from `GET /quizzes/{id}` — only exposed via `/manage` endpoint (owner only)
+- **JWT stored in localStorage** — token sent via `Authorization: Bearer` header
+- **Vite proxy** — frontend proxies `/api/*` to backend in dev mode
+- **UUID primary keys** — all IDs are UUIDs, not integers
+- **JSON columns** — `options` and `answer` fields are JSON in PostgreSQL
+- `npm install` must be run in `frontend/` before dev server starts
+- Backend requires PostgreSQL running (use Docker or local install)
