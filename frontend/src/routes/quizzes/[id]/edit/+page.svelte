@@ -3,11 +3,10 @@
   import { api } from '$lib/api';
   import { isLoggedIn, currentUser } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
-  import { page } from '$app/stores';
   import type { PageData } from './$types';
 
-  export let data: PageData;
-  let quiz = data.quiz;
+  let { data }: { data: PageData } = $props();
+  let quiz = $state(data.quiz);
 
   interface ManagedQuestion {
     id: string;
@@ -18,26 +17,25 @@
     category_id?: string;
   }
 
-  let title = quiz.title;
-  let description = quiz.description || '';
-  let categories: any[] = [];
-  let questions: ManagedQuestion[] = [];
-  let loading = true;
-  let saving = false;
-  let error = '';
-  let toast = '';
+  let title = $state(quiz.title);
+  let description = $state(quiz.description || '');
+  let categories: any[] = $state([]);
+  let questions: ManagedQuestion[] = $state([]);
+  let loading = $state(true);
+  let saving = $state(false);
+  let error = $state('');
+  let toast = $state('');
 
-  let showDeleteModal = false;
-  let questionToDelete: string | null = null;
+  let showDeleteModal = $state(false);
+  let questionToDelete: string | null = $state(null);
 
-  // New question form
-  let newQuestion = {
+  let newQuestion = $state({
     text: '',
     type: 'single',
     category_id: '',
     options: ['', '', '', ''],
     answer: [] as number[],
-  };
+  });
 
   onMount(async () => {
     if (!$isLoggedIn) {
@@ -163,66 +161,75 @@
     }
   }
 
-  $: prevType = newQuestion.type;
-  $: if (newQuestion.type !== prevType) {
-    adjustOptions();
-  }
+  let prevType = $state(newQuestion.type);
+  $effect(() => {
+    if (newQuestion.type !== prevType) {
+      adjustOptions();
+      prevType = newQuestion.type;
+    }
+  });
 </script>
 
-<div class="mb-6">
-  <a href="/quizzes/{quiz.id}" class="btn btn-ghost btn-sm">← {quiz.title}</a>
-</div>
+<svelte:head>
+  <title>Edit: {quiz.title} — QuizTime</title>
+</svelte:head>
 
-{#if loading}
-  <div class="flex justify-center py-16">
-    <span class="loading loading-spinner loading-lg"></span>
-  </div>
-{:else}
-  {#if error}
-    <div class="alert alert-error mb-4">
-      <span>{error}</span>
+<div class="page-enter mx-auto max-w-3xl">
+  <a href="/quizzes/{quiz.id}" class="mb-6 inline-flex items-center gap-1 text-sm font-medium opacity-50 transition-opacity hover:opacity-100">
+    ← {quiz.title}
+  </a>
+
+  {#if loading}
+    <div class="flex justify-center py-20">
+      <span class="text-sm opacity-40">Loading...</span>
     </div>
-  {/if}
+  {:else}
+    {#if error}
+      <div class="mb-4 rounded-xl bg-[var(--color-error-500)]/12 px-4 py-3 text-sm text-[var(--color-error-500)]">
+        {error}
+      </div>
+    {/if}
 
-  <!-- Quiz Info -->
-  <div class="card bg-base-100 shadow-xl mb-6">
-    <div class="card-body">
-      <h2 class="card-title">Quiz Details</h2>
-      <div class="form-control mb-3">
-        <label class="label"><span class="label-text">Title</span></label>
-        <input type="text" bind:value={title} class="input input-bordered w-full" />
+    <!-- Quiz Info -->
+    <div class="frame p-6">
+      <h2 class="mb-4 text-lg font-bold">Quiz Details</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium">Title</label>
+          <input type="text" bind:value={title} class="input-pill" />
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium">Description</label>
+          <textarea bind:value={description} class="input-pill h-20 resize-none"></textarea>
+        </div>
+        <div class="flex justify-end">
+          <button class="btn-pill btn-pill-primary" onclick={saveQuiz} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
       </div>
-      <div class="form-control mb-3">
-        <label class="label"><span class="label-text">Description</span></label>
-        <textarea bind:value={description} class="textarea textarea-bordered w-full h-20"></textarea>
-      </div>
-      <button class="btn btn-primary btn-sm self-end" on:click={saveQuiz} disabled={saving}>
-        {saving ? 'Saving...' : 'Save Changes'}
-      </button>
     </div>
-  </div>
 
-  <!-- Existing Questions -->
-  <div class="card bg-base-100 shadow-xl mb-6">
-    <div class="card-body">
-      <h2 class="card-title">Questions ({questions.length})</h2>
+    <!-- Existing Questions -->
+    <div class="frame mt-6 p-6">
+      <h2 class="mb-4 text-lg font-bold">Questions ({questions.length})</h2>
       {#if questions.length === 0}
-        <p class="text-base-content/60">No questions yet. Add one below.</p>
+        <p class="text-sm opacity-40">No questions yet. Add one below.</p>
       {:else}
         <div class="space-y-3">
           {#each questions as q}
-            <div class="border rounded-lg p-4 flex justify-between items-start">
-              <div>
-                <span class="badge badge-sm">{q.type}</span>
-                <p class="font-medium mt-1">{q.text}</p>
-                <p class="text-sm text-base-content/60 mt-1">
-                  Options: {q.options.join(' | ')}
+            <div class="flex items-start justify-between rounded-xl border border-[var(--color-surface-300-700)] p-4 transition-colors hover:border-[var(--color-primary-500)]/30">
+              <div class="flex-1">
+                <span class="mb-1 inline-block rounded-full bg-[var(--color-surface-200-800)] px-2 py-0.5 text-xs font-medium">{q.type}</span>
+                <p class="mt-1 font-medium">{q.text}</p>
+                <p class="mt-1 text-sm opacity-50">
+                  Options: {q.options.join(' → ')}
                 </p>
-                <p class="text-sm text-success">
-                  Correct: {q.answer.map((i) => q.options[i]).join(', ')}
+                <p class="mt-1 text-sm text-[var(--color-success-500)]">
+                  ✓ {q.answer.map((i) => q.options[i]).join(', ')}
                 </p>
               </div>
-              <button class="btn btn-ghost btn-sm text-error" on:click={() => confirmDeleteQuestion(q.id)}>
+              <button class="ml-4 shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--color-error-500)] transition-colors hover:bg-[var(--color-error-500)]/10" onclick={() => confirmDeleteQuestion(q.id)}>
                 Delete
               </button>
             </div>
@@ -230,97 +237,105 @@
         </div>
       {/if}
     </div>
-  </div>
 
-  <!-- Add Question Form -->
-  <div class="card bg-base-100 shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title">Add New Question</h2>
+    <!-- Add Question Form -->
+    <div class="frame mt-6 p-6">
+      <h2 class="mb-4 text-lg font-bold">Add New Question</h2>
 
-      <div class="form-control mb-3">
-        <label class="label"><span class="label-text">Question Text *</span></label>
-        <textarea
-          bind:value={newQuestion.text}
-          class="textarea textarea-bordered w-full h-20"
-          placeholder="Enter your question..."
-        ></textarea>
-      </div>
-
-      <div class="grid grid-cols-2 gap-4 mb-3">
-        <div class="form-control">
-          <label class="label"><span class="label-text">Type</span></label>
-          <select bind:value={newQuestion.type} class="select select-bordered w-full">
-            <option value="single">Single Select</option>
-            <option value="multiple">Multi Select</option>
-            <option value="true-false">True/False</option>
-          </select>
+      <div class="space-y-4">
+        <div>
+          <label class="mb-1.5 block text-sm font-medium">Question Text *</label>
+          <textarea
+            bind:value={newQuestion.text}
+            class="input-pill h-20 resize-none"
+            placeholder="Enter your question..."
+          ></textarea>
         </div>
 
-        <div class="form-control">
-          <label class="label"><span class="label-text">Category</span></label>
-          <select bind:value={newQuestion.category_id} class="select select-bordered w-full">
-            <option value="">None</option>
-            {#each categories as cat}
-              <option value={cat.id}>{cat.name}</option>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Type</label>
+            <select bind:value={newQuestion.type} class="input-pill">
+              <option value="single">Single Select</option>
+              <option value="multiple">Multi Select</option>
+              <option value="true-false">True/False</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Category</label>
+            <select bind:value={newQuestion.category_id} class="input-pill">
+              <option value="">None</option>
+              {#each categories as cat}
+                <option value={cat.id}>{cat.name}</option>
+              {/each}
+            </select>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div>
+          <label class="mb-1.5 block text-sm font-medium">Options</label>
+          <div class="space-y-2">
+            {#each newQuestion.options as _, i}
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newQuestion.options[i]}
+                  oninput={(e) => updateOption(i, (e.target as HTMLInputElement).value)}
+                  class="input-pill flex-1"
+                  placeholder="Option {String.fromCharCode(65 + i)}"
+                  disabled={newQuestion.type === 'true-false'}
+                />
+                <button
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold transition-all
+                    {newQuestion.answer.includes(i)
+                      ? 'bg-[var(--color-primary-500)] text-white'
+                      : 'border border-[var(--color-surface-300-700)] hover:border-[var(--color-primary-500)]'}"
+                  onclick={() => toggleAnswer(i)}
+                >
+                  {newQuestion.answer.includes(i) ? '✓' : String.fromCharCode(65 + i)}
+                </button>
+              </div>
             {/each}
-          </select>
+          </div>
+          <p class="mt-1.5 text-xs opacity-40">Click the letter buttons to mark correct answers</p>
         </div>
-      </div>
 
-      <!-- Options -->
-      <div class="mb-3">
-        <label class="label"><span class="label-text">Options</span></label>
-        <div class="space-y-2">
-          {#each newQuestion.options as _, i}
-            <div class="flex gap-2 items-center">
-              <input
-                type="text"
-                value={newQuestion.options[i]}
-                on:input={(e) => updateOption(i, e.currentTarget.value)}
-                class="input input-bordered flex-1"
-                placeholder="Option {String.fromCharCode(65 + i)}"
-                disabled={newQuestion.type === 'true-false'}
-              />
-              <button
-                class="btn btn-sm"
-                class:btn-primary={newQuestion.answer.includes(i)}
-                class:btn-outline={!newQuestion.answer.includes(i)}
-                on:click={() => toggleAnswer(i)}
-              >
-                {newQuestion.answer.includes(i) ? '✓' : String.fromCharCode(65 + i)}
-              </button>
-            </div>
-          {/each}
-        </div>
-        <p class="text-xs text-base-content/60 mt-1">Click the letter buttons to mark correct answers</p>
+        <button
+          class="btn-pill btn-pill-primary"
+          onclick={addQuestion}
+          disabled={saving}
+        >
+          {saving ? 'Adding...' : 'Add Question'}
+        </button>
       </div>
-
-      <button class="btn btn-primary" on:click={addQuestion} disabled={saving}>
-        {saving ? 'Adding...' : 'Add Question'}
-      </button>
     </div>
-  </div>
-{/if}
+  {/if}
+</div>
 
+<!-- Toast -->
 {#if toast}
-  <div class="toast toast-end">
-    <div class="alert alert-success">
-      <span>{toast}</span>
+  <div class="fixed bottom-4 right-4 z-50 animate-[pageEnter_0.3s_ease-out]">
+    <div class="rounded-xl bg-[var(--color-success-500)] px-5 py-3 text-sm font-semibold text-white shadow-xl">
+      {toast}
     </div>
   </div>
 {/if}
 
 <!-- Delete Confirmation Modal -->
-<dialog class="modal" class:modal-open={showDeleteModal}>
-  <div class="modal-box">
-    <h3 class="font-bold text-lg">Delete Question</h3>
-    <p class="py-4">Are you sure you want to delete this question?</p>
-    <div class="modal-action">
-      <button class="btn btn-ghost" on:click={() => { showDeleteModal = false; questionToDelete = null; }}>Cancel</button>
-      <button class="btn btn-error" on:click={deleteQuestion}>Delete</button>
+{#if showDeleteModal}
+  <dialog class="modal modal-open">
+    <div class="modal-box rounded-2xl bg-[var(--color-surface-100-900)]">
+      <h3 class="text-lg font-bold">Delete Question</h3>
+      <p class="py-4 text-sm opacity-60">Are you sure you want to delete this question? This action cannot be undone.</p>
+      <div class="modal-action gap-2">
+        <button class="btn-pill btn-pill-ghost" onclick={() => { showDeleteModal = false; questionToDelete = null; }}>Cancel</button>
+        <button class="btn-pill bg-[var(--color-error-500)] text-white hover:opacity-90" onclick={deleteQuestion}>Delete</button>
+      </div>
     </div>
-  </div>
-  <form method="dialog" class="modal-backdrop">
-    <button on:click={() => { showDeleteModal = false; questionToDelete = null; }}>close</button>
-  </form>
-</dialog>
+    <form method="dialog" class="modal-backdrop">
+      <button onclick={() => { showDeleteModal = false; questionToDelete = null; }}>close</button>
+    </form>
+  </dialog>
+{/if}

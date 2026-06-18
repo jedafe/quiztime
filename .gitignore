@@ -20,6 +20,12 @@ build/
 *.swp
 *.swo
 
+# OpenWork / Agent artifacts
+.opencode/
+.omo/
+.playwright-mcp/
+.config/
+
 # OS
 .DS_Store
 Thumbs.db

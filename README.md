@@ -9,17 +9,43 @@ Full-stack quiz application built with FastAPI + SvelteKit.
 - Node.js 18+
 - PostgreSQL 14+
 
-### Option 1: Docker (Recommended)
+### One-Command Start
+
+**Development** (hot-reload, auto-restart):
+```bash
+./dev.sh
+# Frontend: http://localhost:5173
+# Backend API: http://localhost:8000/docs
+```
+
+**Production** (built frontend, 4 workers):
+```bash
+./start.sh
+# Frontend: http://localhost:4173
+# Backend API: http://localhost:8000/docs
+```
+
+**Other commands:**
+```bash
+./dev.sh stop       # stop dev servers
+./dev.sh status     # check if running
+./dev.sh restart    # restart dev servers
+
+./start.sh stop     # stop prod servers
+./start.sh status   # check if running
+./start.sh restart  # restart prod servers
+```
+
+### Docker
 
 ```bash
 docker-compose up
+# Frontend: http://localhost:5173
+# Backend API: http://localhost:8000/docs
+# Database: localhost:5432
 ```
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:8000/docs
-- Database: localhost:5432
-
-### Option 2: Manual Setup
+### Manual Setup
 
 **Backend:**
 ```bash
@@ -54,8 +80,8 @@ Visit http://localhost:8000/docs for interactive Swagger documentation.
 ## Project Structure
 
 ```
-quiz-v7/
-├── backend/
+.
+├── backend/           → FastAPI + SQLAlchemy + PostgreSQL
 │   ├── app/
 │   │   ├── main.py          # FastAPI app + CORS
 │   │   ├── config.py        # Settings (env-based)
@@ -72,7 +98,7 @@ quiz-v7/
 │   ├── seed.py              # Seed demo data
 │   ├── requirements.txt
 │   └── Dockerfile
-├── frontend/
+├── frontend/          → SvelteKit + Tailwind + Skeleton
 │   ├── src/
 │   │   ├── routes/          # SvelteKit pages
 │   │   ├── lib/
@@ -81,6 +107,8 @@ quiz-v7/
 │   │   └── app.html
 │   ├── package.json
 │   └── Dockerfile
+├── dev.sh             # Dev server control
+├── start.sh           # Production server control
 └── docker-compose.yml
 ```
 

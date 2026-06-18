@@ -4,11 +4,11 @@
   import { isLoggedIn } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
 
-  let title = '';
-  let description = '';
-  let categories: any[] = [];
-  let error = '';
-  let loading = false;
+  let title = $state('');
+  let description = $state('');
+  let categories: any[] = $state([]);
+  let error = $state('');
+  let loading = $state(false);
 
   onMount(() => {
     if (!$isLoggedIn) {
@@ -45,45 +45,39 @@
   }
 </script>
 
-<div class="max-w-2xl mx-auto">
-  <h1 class="text-3xl font-bold mb-6">Create New Quiz</h1>
+<svelte:head>
+  <title>Create Quiz — QuizTime</title>
+</svelte:head>
+
+<div class="page-enter mx-auto max-w-xl">
+  <p class="eyebrow">Creation</p>
+  <h1 class="text-3xl font-bold tracking-[-0.03em]">Create New Quiz</h1>
+  <p class="mt-1 text-sm opacity-50">Give it a title and optional description</p>
 
   {#if error}
-    <div class="alert alert-error mb-4">
-      <span>{error}</span>
+    <div class="mt-4 rounded-xl bg-[var(--color-error-500)]/12 px-4 py-3 text-sm text-[var(--color-error-500)]">
+      {error}
     </div>
   {/if}
 
-  <div class="card bg-base-100 shadow-xl">
-    <div class="card-body">
-      <form on:submit|preventDefault={handleCreate}>
-        <div class="form-control mb-4">
-          <label class="label"><span class="label-text">Quiz Title *</span></label>
-          <input
-            type="text"
-            bind:value={title}
-            class="input input-bordered w-full"
-            placeholder="e.g. JavaScript Fundamentals"
-            required
-          />
-        </div>
+  <div class="frame mt-6 p-6">
+    <form onsubmit={(e) => { e.preventDefault(); handleCreate(); }} class="space-y-5">
+      <div>
+        <label class="mb-1.5 block text-sm font-medium">Quiz Title *</label>
+        <input type="text" bind:value={title} class="input-pill" placeholder="e.g. JavaScript Fundamentals" required />
+      </div>
 
-        <div class="form-control mb-6">
-          <label class="label"><span class="label-text">Description</span></label>
-          <textarea
-            bind:value={description}
-            class="textarea textarea-bordered w-full h-24"
-            placeholder="A brief description of this quiz..."
-          ></textarea>
-        </div>
+      <div>
+        <label class="mb-1.5 block text-sm font-medium">Description</label>
+        <textarea bind:value={description} class="input-pill h-24 resize-none" placeholder="A brief description of this quiz..."></textarea>
+      </div>
 
-        <div class="card-actions justify-end">
-          <a href="/dashboard" class="btn btn-ghost">Cancel</a>
-          <button type="submit" class="btn btn-primary" disabled={loading}>
-            {loading ? 'Creating...' : 'Create Quiz'}
-          </button>
-        </div>
-      </form>
-    </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <a href="/dashboard" class="btn-pill btn-pill-ghost">Cancel</a>
+        <button type="submit" class="btn-pill btn-pill-primary" disabled={loading}>
+          {loading ? 'Creating...' : 'Create Quiz'}
+        </button>
+      </div>
+    </form>
   </div>
 </div>

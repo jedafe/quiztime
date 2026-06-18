@@ -5,30 +5,31 @@
   import { isLoggedIn } from '$lib/stores/auth';
   import type { PageData } from './$types';
 
-  export let data: PageData;
-  const quiz = data.quiz;
-  const hasAnswers = quiz.questions?.[0]?.answer != null;
+  let { data }: { data: PageData } = $props();
+  let quiz = data.quiz;
+  let hasAnswers = quiz.questions?.[0]?.answer != null;
 
-  let currentIndex = 0;
+  let currentIndex = $state(0);
   let answers: Record<string, number[]> = {};
-  let selectedOptions: number[] = [];
-  let timeSpent = 0;
+  let selectedOptions = $state<number[]>([]);
+  let timeSpent = $state(0);
   let timerInterval: ReturnType<typeof setInterval>;
-  let showFeedback = false;
-  let isCorrect = false;
-  let quizFinished = false;
-  let submitting = false;
+  let showFeedback = $state(false);
+  let isCorrect = $state(false);
+  let quizFinished = $state(false);
+  let submitting = $state(false);
 
-  const totalQuestions = quiz.questions?.length || 0;
-  const timePerQuestion = 30;
-  const totalTime = totalQuestions * timePerQuestion;
-  let countdown = totalTime;
+  let totalQuestions = quiz.questions?.length || 0;
+  let timePerQuestion = 30;
+  let totalTime = totalQuestions * timePerQuestion;
+  let countdown = $state(totalTime);
 
-  $: currentQuestion = quiz.questions?.[currentIndex];
-  $: progress = ((currentIndex + 1) / totalQuestions) * 100;
-  $: minutes = Math.floor(countdown / 60);
-  $: seconds = countdown % 60;
-  $: formattedTime = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  let currentQuestion = $derived(quiz.questions?.[currentIndex]);
+  let progress = $derived(((currentIndex + 1) / totalQuestions) * 100);
+  let minutes = $derived(Math.floor(countdown / 60));
+  let seconds = $derived(countdown % 60);
+  let formattedTime = $derived(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+  let timerUrgent = $derived(countdown < 60);
 
   onMount(() => {
     if (!$isLoggedIn) {
@@ -118,95 +119,107 @@
   }
 </script>
 
-<div class="mb-4">
-  <a href="/quizzes/{quiz.id}" class="btn btn-ghost btn-sm">← {quiz.title}</a>
-</div>
+<svelte:head>
+  <title>Take Quiz — {quiz.title}</title>
+</svelte:head>
 
-{#if !hasAnswers}
-  <div class="card bg-base-100 shadow-xl">
-    <div class="card-body items-center text-center">
-      <h2 class="card-title">Login Required</h2>
-      <p class="text-base-content/70">You need to be logged in to take this quiz.</p>
-      <div class="card-actions mt-4">
-        <a href="/login" class="btn btn-primary">Login</a>
-        <a href="/register" class="btn btn-outline">Register</a>
+<div class="page-enter mx-auto max-w-2xl">
+  <a href="/quizzes/{quiz.id}" class="mb-4 inline-flex items-center gap-1 text-sm font-medium opacity-50 transition-opacity hover:opacity-100">
+    ← {quiz.title}
+  </a>
+
+  {#if !hasAnswers}
+    <div class="frame p-8 text-center">
+      <h2 class="text-xl font-bold">Login Required</h2>
+      <p class="mt-2 opacity-50">You need to be logged in to take this quiz.</p>
+      <div class="mt-6 flex justify-center gap-2">
+        <a href="/login" class="btn-pill btn-pill-primary">Login</a>
+        <a href="/register" class="btn-pill btn-pill-outline">Register</a>
       </div>
     </div>
-  </div>
-{:else}
-<div class="card bg-base-100 shadow-xl">
-  <div class="card-body">
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-4">
-      <div>
-        <span class="text-sm text-base-content/60">
+  {:else}
+    <div class="frame p-6 sm:p-8">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium opacity-50">
           Question {currentIndex + 1} of {totalQuestions}
         </span>
-      </div>
-      <div class="badge badge-lg" class:badge-error={countdown < 60}>
-        {formattedTime}
-      </div>
-    </div>
-
-    <!-- Progress -->
-    <progress class="progress progress-primary w-full" value={currentIndex + 1} max={totalQuestions}></progress>
-
-    {#if currentQuestion}
-      <!-- Question -->
-      <div class="mt-6 mb-4">
-        <span class="badge badge-outline mb-2">{currentQuestion.type}</span>
-        <h2 class="text-xl font-semibold">{currentQuestion.text}</h2>
+        <span class="rounded-full px-3 py-1 text-sm font-bold
+          {timerUrgent
+            ? 'bg-[var(--color-error-500)]/15 text-[var(--color-error-500)]'
+            : 'bg-[var(--color-surface-200-800)]'}">
+          {formattedTime}
+        </span>
       </div>
 
-      <!-- Options -->
-      <div class="space-y-3">
-        {#each currentQuestion.options as option, i}
-          <button
-            class="block w-full text-left rounded-lg border-2 p-4 transition-all
-              {selectedOptions.includes(i)
-                ? 'border-primary bg-primary/10'
-                : 'border-base-300 hover:border-primary/50'}
-              {showFeedback && currentQuestion.answer.includes(i)
-                ? 'border-success bg-success/20'
-                : ''}
-              {showFeedback && selectedOptions.includes(i) && !currentQuestion.answer.includes(i)
-                ? 'border-error bg-error/20'
-                : ''}
-            "
-            on:click={() => toggleOption(i)}
-            disabled={showFeedback}
-          >
-            <span class="font-medium">{String.fromCharCode(65 + i)}.</span>
-            {option}
-          </button>
-        {/each}
+      <!-- Progress bar -->
+      <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-surface-200-800)]">
+        <div
+          class="h-full rounded-full bg-[var(--color-primary-500)] transition-all duration-300"
+          style="width: {progress}%"
+        ></div>
       </div>
 
-      <!-- Feedback -->
-      {#if showFeedback}
-        <div class="alert mt-4" class:alert-success={isCorrect} class:alert-error={!isCorrect}>
-          <span>{isCorrect ? 'Correct!' : 'Wrong!'}</span>
+      {#if currentQuestion}
+        <!-- Question -->
+        <div class="mt-8">
+          <span class="mb-2 inline-block rounded-full bg-[var(--color-surface-200-800)] px-2.5 py-0.5 text-xs font-medium">{currentQuestion.type}</span>
+          <h2 class="text-xl font-semibold leading-relaxed">{currentQuestion.text}</h2>
+        </div>
+
+        <!-- Options -->
+        <div class="mt-6 space-y-3">
+          {#each currentQuestion.options as option, i}
+            <button
+              class="block w-full rounded-xl border-2 p-4 text-left transition-all
+                {selectedOptions.includes(i)
+                  ? 'border-[var(--color-primary-500)] bg-[var(--color-primary-500)]/10'
+                  : 'border-[var(--color-surface-300-700)] hover:border-[var(--color-primary-500)]/50 hover:bg-[var(--color-surface-200-800)]'}
+                {showFeedback && currentQuestion.answer.includes(i)
+                  ? '!border-[var(--color-success-500)] !bg-[var(--color-success-500)]/15'
+                  : ''}
+                {showFeedback && selectedOptions.includes(i) && !currentQuestion.answer.includes(i)
+                  ? '!border-[var(--color-error-500)] !bg-[var(--color-error-500)]/15'
+                  : ''}
+              "
+              onclick={() => toggleOption(i)}
+              disabled={showFeedback}
+            >
+              <span class="mr-3 inline-flex h-7 w-7 items-center justify-center rounded-full bg-[var(--color-surface-200-800)] text-xs font-bold">{String.fromCharCode(65 + i)}</span>
+              <span class="font-medium">{option}</span>
+            </button>
+          {/each}
+        </div>
+
+        <!-- Feedback -->
+        {#if showFeedback}
+          <div class="mt-5 rounded-xl px-5 py-3.5 text-sm font-semibold {isCorrect
+            ? 'bg-[var(--color-success-500)]/15 text-[var(--color-success-500)]'
+            : 'bg-[var(--color-error-500)]/15 text-[var(--color-error-500)]'}">
+            {isCorrect ? '✓ Correct!' : '✗ Wrong'}
+          </div>
+        {/if}
+
+        <!-- Actions -->
+        <div class="mt-8 flex justify-center gap-3">
+          {#if !showFeedback}
+            <button class="btn-pill btn-pill-outline" onclick={skipQuestion}>
+              Skip
+            </button>
+            <button
+              class="btn-pill btn-pill-primary"
+              onclick={checkAnswer}
+              disabled={selectedOptions.length === 0}
+            >
+              Check
+            </button>
+          {:else}
+            <button class="btn-pill btn-pill-primary" onclick={nextQuestion}>
+              {currentIndex < totalQuestions - 1 ? 'Next →' : 'Finish'}
+            </button>
+          {/if}
         </div>
       {/if}
-
-      <!-- Actions -->
-      <div class="flex justify-center gap-3 mt-6">
-        {#if !showFeedback}
-          <button class="btn btn-outline" on:click={skipQuestion}>Skip</button>
-          <button
-            class="btn btn-primary"
-            on:click={checkAnswer}
-            disabled={selectedOptions.length === 0}
-          >
-            Check
-          </button>
-        {:else}
-          <button class="btn btn-primary" on:click={nextQuestion}>
-            {currentIndex < totalQuestions - 1 ? 'Next' : 'Finish'}
-          </button>
-        {/if}
-      </div>
-    {/if}
-  </div>
+    </div>
+  {/if}
 </div>
-{/if}

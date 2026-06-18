@@ -1,7 +1,9 @@
 <script lang="ts">
   const archCode = `quiz-v7/
 ├── backend/    FastAPI + SQLAlchemy + PostgreSQL
-├── frontend/   SvelteKit + Tailwind + DaisyUI
+├── frontend/   SvelteKit 2 + Svelte 5 + Tailwind v4 + Skeleton v4
+├── dev.sh      → Development server (ports 8000, 5173)
+├── start.sh    → Production server (ports 8000, 4173)
 └── docker-compose.yml`;
 
   const backendCode = `backend/
@@ -11,10 +13,10 @@
 │   ├── database.py       # Engine, session factory, Base
 │   ├── models.py         # SQLAlchemy models
 │   ├── schemas.py        # Pydantic request/response schemas
-│   ├── auth.py           # JWT creation, password hashing
+│   ├── auth.py           # JWT creation, password hashing (bcrypt)
 │   └── routes/
 │       ├── auth.py       # POST /register, /login, GET /me
-│       ├── quizzes.py    # CRUD + /manage, /take
+│       ├── quizzes.py    # CRUD + /manage, /take (paginated)
 │       ├── questions.py  # CRUD per quiz
 │       ├── categories.py # CRUD
 │       └── attempts.py   # Submit, mine, stats, get by id
@@ -31,39 +33,70 @@
 
   const frontendCode = `frontend/
 ├── src/
-│   ├── app.html, app.css
+│   ├── app.html           # data-theme="cerberus"
+│   ├── app.css            # Tailwind v4 imports + Skeleton theme
 │   ├── lib/
 │   │   ├── api.ts         # API client (buildApi pattern)
 │   │   └── stores/
 │   │       ├── auth.ts    # JWT + user state
-│   │       └── theme.ts   # Dark/light/night toggle
+│   │       └── theme.ts   # Skeleton theme toggle
 │   └── routes/
 │       ├── +layout.svelte  # Navbar, theme toggle
 │       ├── +error.svelte   # Error boundary
 │       ├── login/, register/
 │       ├── quizzes/
-│       │   ├── +page.svelte         # Browse
+│       │   ├── +page.svelte         # Browse (paginated)
 │       │   └── [id]/
 │       │       ├── +page.svelte     # Detail
 │       │       ├── take/            # Player
 │       │       ├── results/         # Score
 │       │       └── edit/            # Manage
 │       ├── dashboard/
-│       └── create/
-└── package.json`;
+│       ├── create/
+│       └── docs/
+├── package.json
+├── vite.config.ts         # @tailwindcss/vite plugin`;
 
-  const setupCode = `cd backend
+  const quickStartCode = `# One command to start everything:
+./dev.sh
+
+# Other commands:
+./dev.sh stop       # stop dev servers
+./dev.sh restart    # restart dev servers
+./dev.sh status     # check if running
+
+# Frontend: http://localhost:5173 (Vite HMR)
+# Backend:  http://localhost:8000/docs (hot-reload)`;
+
+  const manualSetupCode = `# Backend
+cd backend
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-python seed.py
-uvicorn app.main:app --reload`;
+python seed.py    # seeds admin/demo users + sample quiz
+uvicorn app.main:app --reload --port 8000
 
-  const frontendSetupCode = `cd frontend
+# Frontend (separate terminal)
+cd frontend
 npm install
 npm run dev`;
 
-  const dockerCode = `docker-compose up`;
+  const prodCode = `# One command to start production:
+./start.sh
+
+# Other commands:
+./start.sh stop       # stop prod servers
+./start.sh restart    # restart prod servers
+./start.sh status     # check if running
+
+# Frontend: http://localhost:4173 (built, 4 workers)
+# Backend:  http://localhost:8000/docs`;
+
+  const dockerCode = `docker-compose up
+
+# Frontend: http://localhost:5173
+# Backend:  http://localhost:8000/docs
+# Database: localhost:5432`;
 
   const migrationCode = `alembic revision --autogenerate -m "description"
 alembic upgrade head`;
@@ -83,32 +116,27 @@ export const load = async ({ fetch }) => {
 import { api } from '$lib/api';
 const quiz = await api.getQuiz(id);`;
 
+  const themeCode = `// stores/theme.ts
+// Dark/light toggle using Skeleton themes
+// 'cerberus' = dark, 'modern' = light
+import { theme } from '$lib/stores/theme';
+theme.toggle();  // toggles: cerberus ↔ modern
+
+// app.css imports both themes:
+@import "tailwindcss";
+@import "@skeletonlabs/skeleton";
+@import "@skeletonlabs/skeleton/themes/cerberus";
+@import "@skeletonlabs/skeleton/themes/modern";
+
+// app.html sets the default:
+// <html lang="en" data-theme="cerberus">`;
+
   const testCode = `python -m pytest tests/ -q
 python -m pytest tests/test_auth.py
 python -m pytest -k "register"`;
 
   const feTestCode = `npm run test
 npm run test:watch`;
-
-  const dockerComposeCode = `version: "3.8"
-services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: quiztime
-      POSTGRES_USER: quizuser
-      POSTGRES_PASSWORD: changeme
-    volumes: [pgdata:/var/lib/postgresql/data]
-  backend:
-    build: ./backend
-    environment:
-      DATABASE_URL: postgresql+asyncpg://quizuser:changeme@db:5432/quiztime
-      SECRET_KEY: change-me-in-production
-    depends_on: [db]
-  frontend:
-    build: ./frontend
-volumes:
-  pgdata:`;
 
   const commitCode = `feat: add attempt stats endpoint
 fix: guard setattr loop in question update
@@ -117,106 +145,129 @@ docs: add developer guide`;
 
 <svelte:head>
   <title>Developer Guide — QuizTime</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 </svelte:head>
 
 <div class="mb-8">
-  <h1 class="text-4xl font-bold mb-2">Developer Guide</h1>
-  <p class="text-base-content/60">Architecture, setup, and contribution guidelines for QuizTime.</p>
+  <h1 class="mb-2 text-4xl font-bold heading-serif">Developer Guide</h1>
+  <p class="opacity-60">Architecture, setup, and contribution guidelines for QuizTime.</p>
 </div>
 
-<div class="grid lg:grid-cols-[220px_1fr] gap-8">
+<!-- Mobile TOC -->
+<details class="mb-6 rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] lg:hidden">
+  <summary class="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-surface-200-800)] rounded-xl">
+    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+    Contents
+  </summary>
+  <div class="space-y-0.5 border-t border-[var(--color-surface-300-700)] px-3 py-2">
+    <a href="#architecture" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Architecture</a>
+    <a href="#tech-stack" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Tech Stack</a>
+    <a href="#project-structure" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Project Structure</a>
+    <a href="#setup" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Local Setup</a>
+    <a href="#database" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Database</a>
+    <a href="#api" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">API Reference</a>
+    <a href="#auth" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Authentication</a>
+    <a href="#frontend" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Frontend</a>
+    <a href="#testing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Testing</a>
+    <a href="#deployment" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Deployment</a>
+    <a href="#contributing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Contributing</a>
+  </div>
+</details>
+
+<div class="grid gap-8 lg:grid-cols-[220px_1fr]">
   <aside class="hidden lg:block">
-    <ul class="menu bg-base-100 rounded-box shadow w-52 sticky top-20">
-      <li class="menu-title">Contents</li>
-      <li><a href="#architecture">Architecture</a></li>
-      <li><a href="#tech-stack">Tech Stack</a></li>
-      <li><a href="#project-structure">Project Structure</a></li>
-      <li><a href="#setup">Local Setup</a></li>
-      <li><a href="#database">Database</a></li>
-      <li><a href="#api">API Reference</a></li>
-      <li><a href="#auth">Authentication</a></li>
-      <li><a href="#frontend">Frontend</a></li>
-      <li><a href="#testing">Testing</a></li>
-      <li><a href="#deployment">Deployment</a></li>
-      <li><a href="#contributing">Contributing</a></li>
-    </ul>
+    <div class="sticky top-20 w-52 rounded-2xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] shadow-lg">
+      <div class="border-b border-[var(--color-surface-300-700)] px-4 py-3">
+        <span class="text-sm font-semibold heading-serif">Contents</span>
+      </div>
+      <div class="space-y-0.5 px-2 py-2">
+        <a href="#architecture" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Architecture</a>
+        <a href="#tech-stack" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Tech Stack</a>
+        <a href="#project-structure" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Project Structure</a>
+        <a href="#setup" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Local Setup</a>
+        <a href="#database" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Database</a>
+        <a href="#api" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">API Reference</a>
+        <a href="#auth" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Authentication</a>
+        <a href="#frontend" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Frontend</a>
+        <a href="#testing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Testing</a>
+        <a href="#deployment" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Deployment</a>
+        <a href="#contributing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Contributing</a>
+      </div>
+    </div>
   </aside>
 
-  <main class="space-y-12">
+  <main class="min-w-0 space-y-12 stagger">
 
-    <section id="architecture" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Architecture</h2>
+    <section id="architecture" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Architecture</h2>
         <p>QuizTime is a full-stack monorepo with a clear separation between backend API and frontend SPA.</p>
-        <div class="mockup-code mt-4"><pre><code>{archCode}</code></pre></div>
-        <div class="divider"></div>
-        <h3 class="font-semibold text-lg">Data Flow</h3>
-        <ol class="list-decimal list-inside space-y-1 text-sm">
-          <li>Frontend makes HTTP requests to <code class="badge badge-ghost">/api/*</code> endpoints.</li>
-          <li>Vite dev proxy forwards requests to FastAPI on port 8000.</li>
-          <li>FastAPI validates JWT tokens, enforces RBAC, and queries PostgreSQL via async SQLAlchemy.</li>
-          <li>Responses are JSON; the frontend updates Svelte stores and re-renders.</li>
+        <pre class="code mt-2 p-4"><code>{archCode}</code></pre>
+        <hr class="my-4 border-[var(--color-surface-300-700)]" />
+        <h3 class="mt-4 font-semibold">Data Flow</h3>
+        <ol class="mt-1 space-y-1 text-sm">
+          <li>1. Frontend makes HTTP requests to <code class="badge variant-ghost">/api/*</code> endpoints.</li>
+          <li>2. Vite dev proxy forwards requests to FastAPI on port 8000.</li>
+          <li>3. FastAPI validates JWT tokens, enforces RBAC, and queries PostgreSQL via async SQLAlchemy.</li>
+          <li>4. Responses are JSON; the frontend updates Svelte stores and re-renders.</li>
         </ol>
-      </div>
     </section>
 
-    <section id="tech-stack" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Tech Stack</h2>
-        <div class="overflow-x-auto">
-          <table class="table table-zebra">
-            <thead><tr><th>Layer</th><th>Technology</th><th>Version</th></tr></thead>
+    <section id="tech-stack" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Tech Stack</h2>
+        <div class="-mx-6 overflow-x-auto px-6">
+          <table class="table w-full min-w-[500px]">
+            <thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Notes</th></tr></thead>
             <tbody>
-              <tr><td>Backend Framework</td><td>FastAPI</td><td>0.104.1</td></tr>
-              <tr><td>ORM</td><td>SQLAlchemy (async)</td><td>2.0.23+</td></tr>
-              <tr><td>Database</td><td>PostgreSQL (asyncpg)</td><td>15+</td></tr>
-              <tr><td>Migrations</td><td>Alembic</td><td>1.13.0</td></tr>
-              <tr><td>Auth</td><td>JWT (python-jose) + bcrypt</td><td>3.3.0 / 4.1.3</td></tr>
-              <tr><td>Frontend Framework</td><td>SvelteKit</td><td>2.x</td></tr>
-              <tr><td>CSS</td><td>Tailwind CSS + DaisyUI</td><td>4.x / 4.x</td></tr>
-              <tr><td>Build Tool</td><td>Vite</td><td>5.x</td></tr>
-              <tr><td>Testing (BE)</td><td>pytest + pytest-asyncio + httpx</td><td>7.4 / 0.23 / 0.25</td></tr>
-              <tr><td>Testing (FE)</td><td>Vitest</td><td>4.x</td></tr>
+              <tr><td>Backend Framework</td><td>FastAPI</td><td>0.104.1</td><td></td></tr>
+              <tr><td>ORM</td><td>SQLAlchemy (async)</td><td>2.0.23+</td><td>lazy engine init</td></tr>
+              <tr><td>Database</td><td>PostgreSQL + asyncpg</td><td>15+</td><td>binary install for Python 3.14</td></tr>
+              <tr><td>Migrations</td><td>Alembic</td><td>1.13.0</td><td></td></tr>
+              <tr><td>Auth</td><td>JWT + bcrypt</td><td>jose 3.3 / bcrypt 5.0</td><td>direct bcrypt, not passlib</td></tr>
+              <tr><td>Frontend Framework</td><td>SvelteKit + Svelte</td><td>2.x + 5.x</td><td>runes syntax ($state, $derived, $effect)</td></tr>
+              <tr><td>CSS</td><td>Tailwind CSS + Skeleton</td><td>4.x / 4.x</td><td>Tailwind v4 CSS-based config</td></tr>
+              <tr><td>Build Tool</td><td>Vite</td><td>8.x</td><td>@tailwindcss/vite plugin</td></tr>
+              <tr><td>Testing (BE)</td><td>pytest + aiosqlite</td><td>7.4+</td><td>SQLite for tests, no PG needed</td></tr>
+              <tr><td>Testing (FE)</td><td>Vitest</td><td>4.x</td><td></td></tr>
             </tbody>
           </table>
         </div>
-      </div>
     </section>
 
-    <section id="project-structure" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Project Structure</h2>
-        <h3 class="font-semibold mt-4">Backend</h3>
-        <div class="mockup-code mt-2"><pre><code>{backendCode}</code></pre></div>
-        <h3 class="font-semibold mt-4">Frontend</h3>
-        <div class="mockup-code mt-2"><pre><code>{frontendCode}</code></pre></div>
-      </div>
+    <section id="project-structure" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Project Structure</h2>
+        <h3 class="mt-4 font-semibold">Backend</h3>
+        <pre class="code mt-2 p-4"><code>{backendCode}</code></pre>
+        <h3 class="mt-4 font-semibold">Frontend</h3>
+        <pre class="code mt-2 p-4"><code>{frontendCode}</code></pre>
     </section>
 
-    <section id="setup" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Local Setup</h2>
-        <h3 class="font-semibold mt-4">Prerequisites</h3>
-        <ul class="list-disc list-inside text-sm space-y-1">
-          <li>Python 3.11+</li>
-          <li>Node.js 18+</li>
-          <li>PostgreSQL 15+</li>
+    <section id="setup" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Local Setup</h2>
+        <h3 class="mt-4 font-semibold">Prerequisites</h3>
+        <ul class="mt-1 space-y-1 text-sm">
+          <li>• Python 3.11+ (3.14 supported with asyncpg binary)</li>
+          <li>• Node.js 18+</li>
+          <li>• PostgreSQL 15+ (running locally, or use Docker)</li>
         </ul>
-        <h3 class="font-semibold mt-4">Backend</h3>
-        <div class="mockup-code mt-2"><pre><code>{setupCode}</code></pre></div>
-        <h3 class="font-semibold mt-4">Frontend</h3>
-        <div class="mockup-code mt-2"><pre><code>{frontendSetupCode}</code></pre></div>
-        <h3 class="font-semibold mt-4">Docker</h3>
-        <div class="mockup-code mt-2"><pre><code>{dockerCode}</code></pre></div>
-      </div>
+
+        <h3 class="mt-4 font-semibold">Quick Start (Recommended)</h3>
+        <p class="text-sm opacity-70 mb-2"><code>./dev.sh</code> starts both backend and frontend with one command.</p>
+        <pre class="code mt-2 p-4"><code>{quickStartCode}</code></pre>
+
+        <h3 class="mt-4 font-semibold">Manual Setup</h3>
+        <pre class="code mt-2 p-4"><code>{manualSetupCode}</code></pre>
+
+        <h3 class="mt-4 font-semibold">Docker</h3>
+        <pre class="code mt-2 p-4"><code>{dockerCode}</code></pre>
     </section>
 
-    <section id="database" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Database</h2>
-        <p>PostgreSQL with async SQLAlchemy. All primary keys are UUIDs.</p>
-        <div class="overflow-x-auto mt-4">
-          <table class="table table-zebra text-sm">
+    <section id="database" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Database</h2>
+        <p>PostgreSQL with async SQLAlchemy. All primary keys are UUIDs. Engine uses lazy init pattern.</p>
+        <div class="-mx-6 mt-4 overflow-x-auto px-6">
+          <table class="table w-full min-w-[400px] text-sm">
             <thead><tr><th>Table</th><th>Key Columns</th><th>Notes</th></tr></thead>
             <tbody>
               <tr><td><code>users</code></td><td>id, username, email, hashed_password, role</td><td>role: admin | user</td></tr>
@@ -227,57 +278,53 @@ docs: add developer guide`;
             </tbody>
           </table>
         </div>
-        <h3 class="font-semibold mt-4">Migrations</h3>
-        <div class="mockup-code mt-2"><pre><code>{migrationCode}</code></pre></div>
-      </div>
+        <h3 class="mt-4 font-semibold">Migrations</h3>
+        <pre class="code mt-2 p-4"><code>{migrationCode}</code></pre>
     </section>
 
-    <section id="api" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">API Reference</h2>
-        <p>Interactive docs at <a href="http://localhost:8000/docs" class="link link-primary" target="_blank">localhost:8000/docs</a></p>
-        <div class="overflow-x-auto mt-4">
-          <table class="table table-zebra text-sm">
+    <section id="api" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">API Reference</h2>
+        <p>Interactive docs at <a href="http://localhost:8000/docs" class="text-[var(--color-primary-500)] hover:underline" target="_blank">localhost:8000/docs</a></p>
+        <div class="-mx-6 mt-4 overflow-x-auto px-6">
+          <table class="table w-full min-w-[500px] text-sm">
             <thead><tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr></thead>
             <tbody>
-              <tr><td class="badge badge-success badge-sm">POST</td><td>/api/auth/register</td><td>No</td><td>Create account</td></tr>
-              <tr><td class="badge badge-success badge-sm">POST</td><td>/api/auth/login</td><td>No</td><td>Get JWT token</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/auth/me</td><td>Yes</td><td>Current user</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/quizzes</td><td>No</td><td>List quizzes</td></tr>
-              <tr><td class="badge badge-success badge-sm">POST</td><td>/api/quizzes</td><td>Yes</td><td>Create quiz</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/quizzes/{'{id}'}</td><td>No</td><td>Quiz detail</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/quizzes/{'{id}'}/manage</td><td>Owner</td><td>Quiz with answers</td></tr>
-              <tr><td class="badge badge-warning badge-sm">PUT</td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Update quiz</td></tr>
-              <tr><td class="badge badge-error badge-sm">DELETE</td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Delete quiz</td></tr>
-              <tr><td class="badge badge-success badge-sm">POST</td><td>/api/questions/{'{quizId}'}</td><td>Owner</td><td>Add question</td></tr>
-              <tr><td class="badge badge-warning badge-sm">PUT</td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Update question</td></tr>
-              <tr><td class="badge badge-error badge-sm">DELETE</td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Delete question</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/categories</td><td>No</td><td>List categories</td></tr>
-              <tr><td class="badge badge-success badge-sm">POST</td><td>/api/categories</td><td>Admin</td><td>Create category</td></tr>
-              <tr><td class="badge badge-success badge-sm">POST</td><td>/api/attempts</td><td>Yes</td><td>Submit attempt</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/attempts/mine</td><td>Yes</td><td>User's attempts</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/attempts/{'{id}'}</td><td>Yes</td><td>Get attempt by ID</td></tr>
-              <tr><td class="badge badge-info badge-sm">GET</td><td>/api/attempts/quiz/{'{id}'}/stats</td><td>No</td><td>Quiz statistics</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/auth/register</td><td>No</td><td>Create account</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/auth/login</td><td>No</td><td>Get JWT token</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/auth/me</td><td>Yes</td><td>Current user</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes</td><td>No</td><td>List quizzes (paginated: items, total, page, page_size, total_pages)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/quizzes</td><td>Yes</td><td>Create quiz</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}</td><td>No</td><td>Quiz detail (answers hidden)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/manage</td><td>Owner</td><td>Quiz with answers</td></tr>
+              <tr><td><span class="badge variant-filled-warning">PUT</span></td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Update quiz</td></tr>
+              <tr><td><span class="badge variant-filled-error">DELETE</span></td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Delete quiz</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/questions/{'{quizId}'}</td><td>Owner</td><td>Add question</td></tr>
+              <tr><td><span class="badge variant-filled-warning">PUT</span></td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Update question</td></tr>
+              <tr><td><span class="badge variant-filled-error">DELETE</span></td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Delete question</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/categories</td><td>No</td><td>List categories</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/categories</td><td>Admin</td><td>Create category</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/attempts</td><td>Yes</td><td>Submit attempt (server-side scoring)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/mine</td><td>Yes</td><td>User's attempts</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/{'{id}'}</td><td>Yes</td><td>Get attempt by ID</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/quiz/{'{id}'}/stats</td><td>No</td><td>Quiz statistics (total, avg, best)</td></tr>
             </tbody>
           </table>
         </div>
-      </div>
     </section>
 
-    <section id="auth" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Authentication</h2>
-        <p>JWT-based. Tokens stored in <code>localStorage</code>, sent via <code>Authorization: Bearer &lt;token&gt;</code>.</p>
-        <h3 class="font-semibold mt-4">Token Flow</h3>
-        <ol class="list-decimal list-inside text-sm space-y-1">
-          <li>Client POSTs credentials to <code>/api/auth/login</code>.</li>
-          <li>Server returns <code>{'{ access_token, user }'}</code>.</li>
-          <li>Client stores token in <code>localStorage</code> and Svelte <code>auth</code> store.</li>
-          <li>Every API call attaches the token header; 401 triggers logout + redirect.</li>
+    <section id="auth" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Authentication</h2>
+        <p>JWT-based. Passwords hashed with <code>bcrypt</code> (direct, not passlib). Tokens stored in <code>localStorage</code>, sent via <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+        <h3 class="mt-4 font-semibold">Token Flow</h3>
+        <ol class="mt-1 space-y-1 text-sm">
+          <li>1. Client POSTs credentials to <code>/api/auth/login</code>.</li>
+          <li>2. Server returns <code>{'{ access_token, user }'}</code>.</li>
+          <li>3. Client stores token in <code>localStorage</code> and Svelte <code>auth</code> store.</li>
+          <li>4. Every API call attaches the token header; 401 triggers logout + redirect.</li>
         </ol>
-        <h3 class="font-semibold mt-4">Roles &amp; Permissions</h3>
-        <div class="overflow-x-auto mt-2">
-          <table class="table table-zebra text-sm">
+        <h3 class="mt-4 font-semibold">Roles &amp; Permissions</h3>
+        <div class="-mx-6 mt-2 overflow-x-auto px-6">
+          <table class="table w-full min-w-[400px] text-sm">
             <thead><tr><th>Action</th><th>User</th><th>Admin</th></tr></thead>
             <tbody>
               <tr><td>Take quiz</td><td>Yes</td><td>Yes</td></tr>
@@ -288,85 +335,102 @@ docs: add developer guide`;
             </tbody>
           </table>
         </div>
-        <h3 class="font-semibold mt-4">Environment Variables</h3>
-        <div class="mockup-code mt-2"><pre><code>{envCode}</code></pre></div>
-        <div class="alert alert-warning mt-2">
-          <span>Never commit <code>SECRET_KEY</code> to version control.</span>
+        <h3 class="mt-4 font-semibold">Environment Variables</h3>
+        <pre class="code mt-2 p-4"><code>{envCode}</code></pre>
+        <div class="alert mt-2 bg-[var(--color-warning-500)] text-white">
+          <span>Never commit <code>SECRET_KEY</code> to version control. Fails hard in production if using the default.</span>
         </div>
-      </div>
     </section>
 
-    <section id="frontend" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Frontend Architecture</h2>
-        <h3 class="font-semibold mt-4">API Client Pattern</h3>
-        <div class="mockup-code mt-2"><pre><code>{apiClientCode}</code></pre></div>
-        <h3 class="font-semibold mt-4">Stores</h3>
-        <div class="overflow-x-auto mt-2">
-          <table class="table table-zebra text-sm">
+    <section id="frontend" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Frontend Architecture</h2>
+        <p>Built with Svelte 5 (runes syntax), SvelteKit 2, Tailwind CSS v4, and Skeleton v4 UI components.</p>
+
+        <h3 class="mt-4 font-semibold">API Client Pattern</h3>
+        <pre class="code mt-2 p-4"><code>{apiClientCode}</code></pre>
+
+        <h3 class="mt-4 font-semibold">Stores</h3>
+        <div class="-mx-6 mt-2 overflow-x-auto px-6">
+          <table class="table w-full min-w-[400px] text-sm">
             <thead><tr><th>Store</th><th>Purpose</th><th>Persistence</th></tr></thead>
             <tbody>
               <tr><td><code>auth</code></td><td>Token + user object</td><td>localStorage</td></tr>
               <tr><td><code>isLoggedIn</code></td><td>Derived boolean</td><td>—</td></tr>
               <tr><td><code>currentUser</code></td><td>Derived user object</td><td>—</td></tr>
               <tr><td><code>isAdmin</code></td><td>Derived role check</td><td>—</td></tr>
-              <tr><td><code>theme</code></td><td>Dark/Light/Night</td><td>localStorage</td></tr>
+              <tr><td><code>theme</code></td><td>Skeleton theme toggle</td><td>localStorage</td></tr>
             </tbody>
           </table>
         </div>
-      </div>
+
+        <h3 class="mt-4 font-semibold">Skeleton Theming</h3>
+        <p class="text-sm mb-2">Themes are applied via the <code>data-theme</code> attribute on <code>&lt;html&gt;</code>. The theme store toggles between two Skeleton themes:</p>
+        <div class="mt-2 grid gap-2 sm:grid-cols-2 text-sm">
+          <div class="rounded-lg bg-[var(--color-surface-200-800)] p-3 text-center"><strong>🌙 Dark (Cerberus)</strong> — default</div>
+          <div class="rounded-lg bg-[var(--color-surface-200-800)] p-3 text-center"><strong>☀️ Light (Modern)</strong></div>
+        </div>
+        <pre class="code mt-2 p-4"><code>{themeCode}</code></pre>
+        <p class="text-sm mt-2">Skeleton v4 uses CSS custom properties for theming. Components use classes like <code>variant-filled-primary</code>, <code>variant-ghost</code>, <code>variant-outline</code> instead of DaisyUI's <code>btn-primary</code> pattern.</p>
+
+        <h3 class="mt-4 font-semibold">Svelte 5 Runes</h3>
+        <p class="text-sm">All components use Svelte 5 runes syntax instead of Svelte 4 <code>export let</code> / stores:</p>
+        <ul class="mt-1 space-y-1 text-sm">
+          <li>• <code>$props()</code> — component props (replaces <code>export let</code>)</li>
+          <li>• <code>$state()</code> — reactive local state (replaces <code>let x = value</code>)</li>
+          <li>• <code>$derived()</code> — computed values (replaces <code>$:</code> reactive statements)</li>
+          <li>• <code>$effect()</code> — side effects (replaces <code>onMount</code> / <code>afterUpdate</code>)</li>
+          <li>• <code>&#123;@render children()&#125;</code> — slot rendering (replaces <code>&lt;slot /&gt;</code>)</li>
+        </ul>
     </section>
 
-    <section id="testing" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Testing</h2>
-        <h3 class="font-semibold mt-4">Backend (pytest)</h3>
-        <div class="mockup-code mt-2"><pre><code>{testCode}</code></pre></div>
-        <ul class="list-disc list-inside text-sm mt-2 space-y-1">
-          <li>Uses <code>aiosqlite</code> — no PostgreSQL needed for tests.</li>
-          <li>Fixtures: <code>client</code>, <code>auth_headers</code>, <code>admin_headers</code>, <code>created_quiz</code>.</li>
+    <section id="testing" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Testing</h2>
+        <h3 class="mt-4 font-semibold">Backend (pytest)</h3>
+        <pre class="code mt-2 p-4"><code>{testCode}</code></pre>
+        <ul class="mt-2 space-y-1 text-sm">
+          <li>• Uses <code>aiosqlite</code> — no PostgreSQL needed for tests.</li>
+          <li>• Fixtures: <code>client</code>, <code>auth_headers</code>, <code>admin_headers</code>, <code>created_quiz</code>.</li>
+          <li>• Database uses lazy init: call <code>get_engine()</code> / <code>get_session_factory()</code> before use.</li>
         </ul>
-        <h3 class="font-semibold mt-4">Frontend (vitest)</h3>
-        <div class="mockup-code mt-2"><pre><code>{feTestCode}</code></pre></div>
-      </div>
+        <h3 class="mt-4 font-semibold">Frontend (vitest)</h3>
+        <pre class="code mt-2 p-4"><code>{feTestCode}</code></pre>
     </section>
 
-    <section id="deployment" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Deployment</h2>
-        <h3 class="font-semibold mt-4">Docker Compose</h3>
-        <div class="mockup-code mt-2"><pre><code>{dockerComposeCode}</code></pre></div>
-        <h3 class="font-semibold mt-4">Production Checklist</h3>
-        <ul class="list-disc list-inside text-sm space-y-1">
-          <li>Set a strong <code>SECRET_KEY</code>.</li>
-          <li>Configure CORS origins for your domain.</li>
-          <li>Run <code>alembic upgrade head</code> after deploys.</li>
-          <li>Build frontend: <code>npm run build</code> and serve with Nginx.</li>
-          <li>Enable HTTPS via reverse proxy.</li>
+    <section id="deployment" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Deployment</h2>
+        <h3 class="mt-4 font-semibold">Production (Recommended)</h3>
+        <p class="text-sm opacity-70 mb-2"><code>./start.sh</code> builds the frontend and starts production servers.</p>
+        <pre class="code mt-2 p-4"><code>{prodCode}</code></pre>
+        <h3 class="mt-4 font-semibold">Production Checklist</h3>
+        <ul class="mt-1 space-y-1 text-sm">
+          <li>• Set a strong <code>SECRET_KEY</code> (app fails hard if using default).</li>
+          <li>• Configure CORS origins for your domain.</li>
+          <li>• Run <code>alembic upgrade head</code> after deploys.</li>
+          <li>• Frontend built with <code>npm run build</code>, served by Vite preview (4 workers).</li>
+          <li>• Enable HTTPS via reverse proxy (Nginx/Caddy).</li>
         </ul>
-      </div>
     </section>
 
-    <section id="contributing" class="card bg-base-100 shadow-xl">
-      <div class="card-body">
-        <h2 class="card-title text-2xl">Contributing</h2>
-        <h3 class="font-semibold mt-4">Code Style</h3>
-        <ul class="list-disc list-inside text-sm space-y-1">
-          <li>Python: PEP 8, type hints.</li>
-          <li>TypeScript: strict mode, prefer <code>const</code>.</li>
-          <li>Svelte: <code>&lt;script lang="ts"&gt;</code>.</li>
+    <section id="contributing" class="frame p-6">
+        <h2 class="mb-4 text-2xl font-bold">Contributing</h2>
+        <h3 class="mt-4 font-semibold">Code Style</h3>
+        <ul class="mt-1 space-y-1 text-sm">
+          <li>• Python: PEP 8, type hints, async/await throughout.</li>
+          <li>• TypeScript: strict mode, prefer <code>const</code>.</li>
+          <li>• Svelte: <code>&lt;script lang="ts"&gt;</code>, Svelte 5 runes (<code>$state</code>, <code>$derived</code>, <code>$effect</code>).</li>
+          <li>• CSS: Skeleton v4 component classes, Tailwind utility classes.</li>
         </ul>
-        <h3 class="font-semibold mt-4">Workflow</h3>
-        <ol class="list-decimal list-inside text-sm space-y-1">
-          <li>Branch from <code>main</code>.</li>
-          <li>Write/update tests.</li>
-          <li>Run <code>pytest</code> and <code>npm run test</code>.</li>
-          <li>Run <code>npm run check</code>.</li>
-          <li>Open a PR.</li>
+        <h3 class="mt-4 font-semibold">Workflow</h3>
+        <ol class="mt-1 space-y-1 text-sm">
+          <li>1. Branch from <code>main</code>.</li>
+          <li>2. Run <code>./dev.sh</code> to start dev servers.</li>
+          <li>3. Write/update tests.</li>
+          <li>4. Run <code>pytest</code> and <code>npm run test</code>.</li>
+          <li>5. Run <code>npm run check</code> for type validation.</li>
+          <li>6. Open a PR.</li>
         </ol>
-        <h3 class="font-semibold mt-4">Commit Messages</h3>
-        <div class="mockup-code mt-2"><pre><code>{commitCode}</code></pre></div>
-      </div>
+        <h3 class="mt-4 font-semibold">Commit Messages</h3>
+        <pre class="code mt-2 p-4"><code>{commitCode}</code></pre>
     </section>
   </main>
 </div>

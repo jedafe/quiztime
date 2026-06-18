@@ -3,11 +3,11 @@
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
 
-  let username = '';
-  let email = '';
-  let password = '';
-  let error = '';
-  let loading = false;
+  let username = $state('');
+  let email = $state('');
+  let password = $state('');
+  let error = $state('');
+  let loading = $state(false);
 
   async function handleRegister() {
     loading = true;
@@ -24,58 +24,71 @@
   }
 </script>
 
-<div class="flex justify-center items-center min-h-[60vh]">
-  <div class="card w-full max-w-md bg-base-100 shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title text-2xl mb-4">Register</h2>
+<svelte:head>
+  <title>Register — QuizTime</title>
+</svelte:head>
 
-      {#if error}
-        <div class="alert alert-error mb-4">
-          <span>{error}</span>
+<div class="relative -mx-4 sm:-mx-6">
+  <div class="mx-auto grid max-w-6xl overflow-hidden rounded-none sm:mx-6 sm:rounded-2xl lg:grid-cols-2">
+    <!-- Left — Dark hero panel -->
+    <div class="relative flex flex-col justify-center bg-[#142033] px-8 py-16 sm:px-12 lg:px-14">
+      <div class="pointer-events-none absolute inset-0 opacity-[0.04]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0); background-size: 24px 24px;"></div>
+      <div class="relative z-10">
+        <div class="eyebrow mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-white/70 backdrop-blur-sm">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          QuizTime Cloud
         </div>
-      {/if}
-
-      <form on:submit|preventDefault={handleRegister}>
-        <div class="form-control mb-3">
-          <label class="label"><span class="label-text">Username</span></label>
-          <input
-            type="text"
-            bind:value={username}
-            class="input input-bordered w-full"
-            minlength="3"
-            required
-          />
+        <h1 class="text-3xl font-bold tracking-[-0.04em] text-white sm:text-4xl">
+          Join the<br />
+          <span class="text-[var(--color-primary-400)]">community.</span>
+        </h1>
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
+          Create your free account and start challenging yourself with quizzes from around the world.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/login" class="btn-pill bg-white/10 text-white text-xs hover:bg-white/20">
+            Already registered? Sign in
+          </a>
         </div>
+      </div>
+    </div>
 
-        <div class="form-control mb-3">
-          <label class="label"><span class="label-text">Email</span></label>
-          <input
-            type="email"
-            bind:value={email}
-            class="input input-bordered w-full"
-            required
-          />
-        </div>
+    <!-- Right — Register form panel -->
+    <div class="flex flex-col justify-center bg-[var(--color-surface-50-950)] px-8 py-16 sm:px-12 lg:px-14">
+      <div class="w-full max-w-sm">
+        <p class="eyebrow">Get started</p>
+        <h2 class="mt-1 text-2xl font-bold tracking-[-0.03em]">Create account</h2>
 
-        <div class="form-control mb-6">
-          <label class="label"><span class="label-text">Password</span></label>
-          <input
-            type="password"
-            bind:value={password}
-            class="input input-bordered w-full"
-            minlength="6"
-            required
-          />
-        </div>
+        {#if error}
+          <div class="mt-4 rounded-xl bg-[var(--color-error-500)]/12 px-4 py-3 text-sm text-[var(--color-error-500)]">
+            {error}
+          </div>
+        {/if}
 
-        <button type="submit" class="btn btn-primary w-full" disabled={loading}>
-          {loading ? 'Creating account...' : 'Register'}
-        </button>
-      </form>
+        <form onsubmit={(e) => { e.preventDefault(); handleRegister(); }} class="mt-6 space-y-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Username</label>
+            <input type="text" bind:value={username} class="input-pill" placeholder="Choose a username" minlength="3" required />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Email</label>
+            <input type="email" bind:value={email} class="input-pill" placeholder="you@example.com" required />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Password</label>
+            <input type="password" bind:value={password} class="input-pill" placeholder="At least 6 characters" minlength="6" required />
+          </div>
+          <button type="submit" class="btn-pill btn-pill-primary w-full" disabled={loading}>
+            {loading ? 'Creating account...' : 'Create Account'}
+          </button>
+        </form>
 
-      <p class="text-center mt-4 text-sm">
-        Already have an account? <a href="/login" class="link link-primary">Login</a>
-      </p>
+        <p class="divider-text mt-6">or</p>
+
+        <p class="mt-6 text-center text-sm opacity-50">
+          Already have an account? <a href="/login" class="font-semibold text-[var(--color-primary-500)] hover:underline">Sign in</a>
+        </p>
+      </div>
     </div>
   </div>
 </div>

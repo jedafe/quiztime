@@ -1,14 +1,14 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-type Theme = 'dark' | 'light' | 'night';
+type Theme = 'cerberus' | 'modern';
 
 function createThemeStore() {
-  let initial: Theme = 'dark';
+  let initial: Theme = 'cerberus';
   if (browser) {
     try {
       const stored = localStorage.getItem('theme') as Theme | null;
-      if (stored && ['dark', 'light', 'night'].includes(stored)) {
+      if (stored === 'cerberus' || stored === 'modern') {
         initial = stored;
       }
     } catch {
@@ -21,17 +21,23 @@ function createThemeStore() {
   return {
     subscribe,
     toggle: () => {
-      let current: Theme = 'dark';
+      let current: Theme = 'cerberus';
       subscribe((v) => (current = v))();
-      const next: Theme = current === 'dark' ? 'light' : current === 'light' ? 'night' : 'dark';
-      if (browser) localStorage.setItem('theme', next);
-      if (browser) document.documentElement.setAttribute('data-theme', next);
+      const next: Theme = current === 'cerberus' ? 'modern' : 'cerberus';
+      if (browser) {
+        localStorage.setItem('theme', next);
+        document.documentElement.setAttribute('data-theme', next);
+        document.documentElement.style.colorScheme = next === 'cerberus' ? 'dark' : 'light';
+      }
       set(next);
     },
     init: () => {
-      let current: Theme = 'dark';
+      let current: Theme = 'cerberus';
       subscribe((v) => (current = v))();
-      if (browser) document.documentElement.setAttribute('data-theme', current);
+      if (browser) {
+        document.documentElement.setAttribute('data-theme', current);
+        document.documentElement.style.colorScheme = current === 'cerberus' ? 'dark' : 'light';
+      }
     },
   };
 }

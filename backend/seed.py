@@ -1,6 +1,6 @@
 import asyncio
 import uuid
-from app.database import async_session, engine, Base
+from app.database import get_session_factory, get_engine, Base
 from app.models import User, Category, Quiz, Question
 from app.auth import hash_password
 
@@ -109,10 +109,11 @@ SEED_QUESTIONS = [
 
 
 async def seed():
-    async with engine.begin() as conn:
+    eng = get_engine()
+    async with eng.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    async with async_session() as db:
+    async with get_session_factory()() as db:
         # Seed users
         users = {}
         for u in SEED_USERS:

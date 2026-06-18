@@ -5,28 +5,50 @@
 Full-stack monorepo: **FastAPI** (Python) backend + **SvelteKit** (TypeScript) frontend.
 
 ```
-quiz-v7/
+.
 ├── backend/    → FastAPI + SQLAlchemy + PostgreSQL
-├── frontend/   → SvelteKit + Tailwind + DaisyUI
+├── frontend/   → SvelteKit + Tailwind + Skeleton
+├── dev.sh      → Development server control
+├── start.sh    → Production server control
 └── docker-compose.yml
 ```
 
 ## Running
 
+**Development (one command):**
+```bash
+./dev.sh              # start dev servers
+./dev.sh stop         # stop dev servers
+./dev.sh restart      # restart dev servers
+./dev.sh status       # check if running
+# Frontend: http://localhost:5173 (Vite HMR)
+# Backend:  http://localhost:8000/docs (hot-reload)
+```
+
+**Production (one command):**
+```bash
+./start.sh            # build + start prod servers
+./start.sh stop       # stop prod servers
+./start.sh restart    # restart prod servers
+./start.sh status     # check if running
+# Frontend: http://localhost:4173 (built)
+# Backend:  http://localhost:8000/docs (4 workers)
+```
+
 **Docker (fastest):**
 ```bash
 docker-compose up
 # Frontend: http://localhost:5173
-# Backend: http://localhost:8000/docs
+# Backend:  http://localhost:8000/docs
 ```
 
-**Manual:**
+**Manual (for reference):**
 ```bash
 # Backend
 cd backend && python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt && cp .env.example .env
 python seed.py  # creates admin/demo users + sample quiz
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8000
 
 # Frontend (separate terminal)
 cd frontend && npm install && npm run dev
@@ -36,15 +58,16 @@ cd frontend && npm install && npm run dev
 
 ```bash
 # Backend
-uvicorn app.main:app --reload          # dev server
-python seed.py                          # seed demo data
-python -m pytest tests/ -q             # run tests (uses SQLite aiosqlite)
+uvicorn app.main:app --reload --port 8000  # dev server
+python seed.py                              # seed demo data
+python -m pytest tests/ -q                 # run tests (uses SQLite aiosqlite)
 
 # Frontend
-npm run dev                             # dev server (port 5173)
-npm run build                           # production build
-npm run check                           # type-check
-npm run test                            # run vitest tests
+npm run dev               # dev server (port 5173, Vite HMR)
+npm run build             # production build
+npm run check             # type-check
+npm run test              # run vitest tests
+npm run preview           # preview production build (port 4173)
 ```
 
 ## Default Credentials
@@ -63,7 +86,7 @@ All endpoints prefixed with `/api/`:
 | `POST /auth/register` | No | Create account |
 | `POST /auth/login` | No | Get JWT token |
 | `GET /auth/me` | Yes | Current user |
-| `GET /quizzes` | No | List quizzes |
+| `GET /quizzes` | No | List quizzes (paginated) |
 | `POST /quizzes` | Yes | Create quiz |
 | `GET /quizzes/{id}` | No | Quiz detail (answers hidden) |
 | `GET /quizzes/{id}/manage` | Yes (owner) | Quiz with answers |
@@ -113,5 +136,6 @@ All endpoints prefixed with `/api/`:
 - **Vite proxy** — frontend proxies `/api/*` to backend in dev mode
 - **UUID primary keys** — all IDs are UUIDs, not integers
 - **JSON columns** — `options` and `answer` fields are JSON in PostgreSQL
+- **Pagination** — `GET /quizzes` returns `{items, total, page, page_size, total_pages}`
 - `npm install` must be run in `frontend/` before dev server starts
 - Backend requires PostgreSQL running (use Docker or local install)

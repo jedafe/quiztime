@@ -1,33 +1,40 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { api } from '$lib/api';
   import type { PageData } from './$types';
 
-  export let data: PageData;
+  let { data }: { data: PageData } = $props();
 </script>
 
-<h1 class="text-3xl font-bold mb-6">Browse Quizzes</h1>
+<svelte:head>
+  <title>Browse Quizzes — QuizTime</title>
+</svelte:head>
 
-{#if data.quizzes?.length === 0}
-  <div class="text-center py-16">
-    <p class="text-lg text-base-content/60">No quizzes yet. Be the first to create one!</p>
-    <a href="/create" class="btn btn-primary mt-4">Create Quiz</a>
+<div class="page-enter">
+  <div class="flex items-end justify-between">
+    <div>
+      <p class="eyebrow">Explore</p>
+      <h1 class="text-3xl font-bold tracking-[-0.03em]">Browse Quizzes</h1>
+    </div>
+    <a href="/create" class="btn-pill btn-pill-primary btn-pill-sm">+ New Quiz</a>
   </div>
-{:else}
-  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-    {#each data.quizzes as quiz}
-      <a href="/quizzes/{quiz.id}" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-        <div class="card-body">
-          <h3 class="card-title">{quiz.title}</h3>
-          <p class="text-base-content/60 text-sm line-clamp-2">{quiz.description || 'No description'}</p>
-          <div class="flex items-center gap-2 mt-2">
-            <span class="badge badge-outline">{quiz.question_count} questions</span>
+
+  {#if data.quizzes?.length === 0}
+    <div class="mt-16 text-center">
+      <p class="text-lg opacity-40">No quizzes yet.</p>
+      <a href="/create" class="btn-pill btn-pill-primary mt-4">Create the First One</a>
+    </div>
+  {:else}
+    <div class="stagger mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {#each data.quizzes as quiz}
+        <a href="/quizzes/{quiz.id}" class="frame-lift block p-5">
+          <h3 class="font-bold transition-colors group-hover:text-[var(--color-primary-500)]">{quiz.title}</h3>
+          <p class="mt-1 line-clamp-2 text-sm opacity-50">{quiz.description || 'No description'}</p>
+          <div class="mt-3 flex items-center justify-between">
+            <span class="rounded-full bg-[var(--color-surface-200-800)] px-2.5 py-0.5 text-xs font-medium">{quiz.question_count} questions</span>
+            <span class="btn-pill btn-pill-primary btn-pill-sm opacity-0 transition-opacity group-hover:opacity-100">Take Quiz →</span>
           </div>
-          <div class="card-actions justify-end mt-2">
-            <span class="btn btn-primary btn-sm">Take Quiz</span>
-          </div>
-        </div>
-      </a>
-    {/each}
-  </div>
-{/if}
+        </a>
+      {/each}
+    </div>
+  {/if}
+</div>

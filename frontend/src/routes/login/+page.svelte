@@ -3,10 +3,10 @@
   import { auth } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
 
-  let username = '';
-  let password = '';
-  let error = '';
-  let loading = false;
+  let username = $state('');
+  let password = $state('');
+  let error = $state('');
+  let loading = $state(false);
 
   async function handleLogin() {
     loading = true;
@@ -23,46 +23,83 @@
   }
 </script>
 
-<div class="flex justify-center items-center min-h-[60vh]">
-  <div class="card w-full max-w-md bg-base-100 shadow-xl">
-    <div class="card-body">
-      <h2 class="card-title text-2xl mb-4">Login</h2>
+<svelte:head>
+  <title>Login — QuizTime</title>
+</svelte:head>
 
-      {#if error}
-        <div class="alert alert-error mb-4">
-          <span>{error}</span>
+<div class="relative -mx-4 sm:-mx-6">
+  <div class="mx-auto grid max-w-6xl overflow-hidden rounded-none sm:mx-6 sm:rounded-2xl lg:grid-cols-2">
+    <!-- Left — Dark hero panel (OpenWork sign-in style) -->
+    <div class="relative flex flex-col justify-center bg-[#142033] px-8 py-16 sm:px-12 lg:px-14">
+      <div class="pointer-events-none absolute inset-0 opacity-[0.04]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0); background-size: 24px 24px;"></div>
+      <div class="relative z-10">
+        <div class="eyebrow mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-white/70 backdrop-blur-sm">
+          <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
+          QuizTime Cloud
         </div>
-      {/if}
-
-      <form on:submit|preventDefault={handleLogin}>
-        <div class="form-control mb-3">
-          <label class="label"><span class="label-text">Username</span></label>
-          <input
-            type="text"
-            bind:value={username}
-            class="input input-bordered w-full"
-            required
-          />
+        <h1 class="text-3xl font-bold tracking-[-0.04em] text-white sm:text-4xl">
+          One login,<br />
+          <span class="text-[var(--color-primary-400)]">every quiz.</span>
+        </h1>
+        <p class="mt-4 max-w-sm text-sm leading-relaxed text-white/60">
+          Sign in to track your progress, create quizzes, and compete with the community.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a href="/register" class="btn-pill bg-white/10 text-white text-xs hover:bg-white/20">
+            Don't have an account? Join free
+          </a>
         </div>
+      </div>
+    </div>
 
-        <div class="form-control mb-6">
-          <label class="label"><span class="label-text">Password</span></label>
-          <input
-            type="password"
-            bind:value={password}
-            class="input input-bordered w-full"
-            required
-          />
-        </div>
+    <!-- Right — Login form panel -->
+    <div class="flex flex-col justify-center bg-[var(--color-surface-50-950)] px-8 py-16 sm:px-12 lg:px-14">
+      <div class="w-full max-w-sm">
+        <p class="eyebrow">Welcome back</p>
+        <h2 class="mt-1 text-2xl font-bold tracking-[-0.03em]">Sign in</h2>
 
-        <button type="submit" class="btn btn-primary w-full" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+        {#if error}
+          <div class="mt-4 rounded-xl bg-[var(--color-error-500)]/12 px-4 py-3 text-sm text-[var(--color-error-500)]">
+            {error}
+          </div>
+        {/if}
 
-      <p class="text-center mt-4 text-sm">
-        Don't have an account? <a href="/register" class="link link-primary">Register</a>
-      </p>
+        <form onsubmit={(e) => { e.preventDefault(); handleLogin(); }} class="mt-6 space-y-4">
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Username</label>
+            <input
+              type="text"
+              bind:value={username}
+              class="input-pill"
+              placeholder="Enter your username"
+              required
+            />
+          </div>
+          <div>
+            <label class="mb-1.5 block text-sm font-medium">Password</label>
+            <input
+              type="password"
+              bind:value={password}
+              class="input-pill"
+              placeholder="Enter your password"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="btn-pill btn-pill-primary w-full"
+            disabled={loading}
+          >
+            {loading ? 'Signing in...' : 'Sign In'}
+          </button>
+        </form>
+
+        <p class="divider-text mt-6">or</p>
+
+        <p class="mt-6 text-center text-sm opacity-50">
+          Don't have an account? <a href="/register" class="font-semibold text-[var(--color-primary-500)] hover:underline">Create one</a>
+        </p>
+      </div>
     </div>
   </div>
 </div>

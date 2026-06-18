@@ -4,21 +4,22 @@
   import { api } from '$lib/api';
   import type { PageData } from './$types';
 
-  export let data: PageData;
-  const quiz = data.quiz;
+  let { data }: { data: PageData } = $props();
+  let quiz = data.quiz;
 
-  let attempt: any = null;
-  let loading = true;
-  let score = 0;
-  let total = quiz.questions?.length || 0;
+  let attempt: any = $state(null);
+  let loading = $state(true);
+  let score = $state(0);
+  let total = $state(quiz.questions?.length || 0);
 
-  $: attemptId = $page.url.searchParams.get('attemptId');
-
-  $: percentage = total > 0 ? Math.round((score / total) * 100) : 0;
-  $: grade =
-    percentage <= 40 ? 'Failed' : percentage <= 59 ? 'Pass' : percentage <= 69 ? 'Good' : 'Excellent';
-  $: gradeColor =
-    percentage <= 40 ? 'error' : percentage <= 59 ? 'warning' : percentage <= 69 ? 'primary' : 'success';
+  let attemptId = $derived($page.url.searchParams.get('attemptId'));
+  let percentage = $derived(total > 0 ? Math.round((score / total) * 100) : 0);
+  let grade = $derived(
+    percentage <= 40 ? 'Failed' : percentage <= 59 ? 'Pass' : percentage <= 69 ? 'Good' : 'Excellent'
+  );
+  let gradeColor = $derived(
+    percentage <= 40 ? 'error' : percentage <= 59 ? 'warning' : percentage <= 69 ? 'primary' : 'success'
+  );
 
   onMount(async () => {
     if (attemptId) {
@@ -36,55 +37,60 @@
   });
 </script>
 
-<div class="mb-6">
-  <a href="/quizzes/{quiz.id}" class="btn btn-ghost btn-sm">← {quiz.title}</a>
-</div>
+<svelte:head>
+  <title>Results — {quiz.title}</title>
+</svelte:head>
 
-{#if loading}
-  <div class="flex justify-center py-16">
-    <span class="loading loading-spinner loading-lg"></span>
-  </div>
-{:else}
-  <div class="card bg-base-100 shadow-xl max-w-lg mx-auto">
-    <div class="card-body items-center text-center">
-      <h2 class="card-title text-3xl mb-2">
-        {percentage >= 60 ? 'Congratulations!' : 'Try Again!'}
+<div class="page-enter mx-auto max-w-lg">
+  <a href="/quizzes/{quiz.id}" class="mb-6 inline-flex items-center gap-1 text-sm font-medium opacity-50 transition-opacity hover:opacity-100">
+    ← {quiz.title}
+  </a>
+
+  {#if loading}
+    <div class="flex justify-center py-20">
+      <span class="text-sm opacity-40">Loading...</span>
+    </div>
+  {:else}
+    <div class="frame p-8 text-center">
+      <h2 class="text-3xl font-bold">
+        {percentage >= 60 ? '🎉 Congratulations!' : 'Keep trying!'}
       </h2>
 
-      <!-- Score Circle -->
-      <div class="radial-progress text-4xl font-bold mt-4"
-        style="--value:{percentage}; color: hsl(var(--{gradeColor}))">
-        {percentage}%
+      <!-- Score circle -->
+      <div class="mx-auto mt-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-[var(--color-{gradeColor}-500)]">
+        <div>
+          <div class="text-3xl font-extrabold text-[var(--color-{gradeColor}-500)]">{percentage}%</div>
+        </div>
       </div>
 
-      <div class="stats mt-6 w-full">
-        <div class="stat place-items-center">
-          <div class="stat-title">Score</div>
-          <div class="stat-value text-primary">{score}/{total}</div>
+      <div class="mt-8 grid grid-cols-3 gap-4">
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wider opacity-40">Score</div>
+          <div class="mt-1 text-xl font-bold">{score}/{total}</div>
         </div>
-        <div class="stat place-items-center">
-          <div class="stat-title">Grade</div>
-          <div class="stat-value text-{gradeColor}">{grade}</div>
+        <div>
+          <div class="text-xs font-medium uppercase tracking-wider opacity-40">Grade</div>
+          <div class="mt-1 text-xl font-bold text-[var(--color-{gradeColor}-500)]">{grade}</div>
         </div>
         {#if attempt?.time_spent}
-          <div class="stat place-items-center">
-            <div class="stat-title">Time</div>
-            <div class="stat-value">
+          <div>
+            <div class="text-xs font-medium uppercase tracking-wider opacity-40">Time</div>
+            <div class="mt-1 text-xl font-bold">
               {Math.floor(attempt.time_spent / 60)}:{String(attempt.time_spent % 60).padStart(2, '0')}
             </div>
           </div>
         {/if}
       </div>
 
-      <p class="mt-4 text-base-content/70">
-        You got <span class="font-bold text-primary">{score}</span> out of
-        <span class="font-bold text-primary">{total}</span> questions correct
+      <p class="mt-6 text-sm opacity-50">
+        You got <span class="font-semibold text-[var(--color-primary-500)]">{score}</span> out of
+        <span class="font-semibold text-[var(--color-primary-500)]">{total}</span> questions correct
       </p>
 
-      <div class="card-actions mt-6 gap-3">
-        <a href="/quizzes/{quiz.id}/take" class="btn btn-outline">Retry Quiz</a>
-        <a href="/quizzes" class="btn btn-primary">Browse More</a>
+      <div class="mt-8 flex justify-center gap-3">
+        <a href="/quizzes/{quiz.id}/take" class="btn-pill btn-pill-outline">Retry Quiz</a>
+        <a href="/quizzes" class="btn-pill btn-pill-primary">Browse More</a>
       </div>
     </div>
-  </div>
-{/if}
+  {/if}
+</div>
