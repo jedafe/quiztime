@@ -10,7 +10,10 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     class Config:
-        env_file = ".env"
+        # Checks CWD (.env) and project root (../.env) for convenience.
+        # ./dev.sh runs from backend/, so it picks up backend/.env first
+        # and falls back to the root .env if that doesn't exist.
+        env_file = ".env", "../.env"
 
 
 @lru_cache
