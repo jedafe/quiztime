@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { page } from '$app/stores';
   import { goto } from '$app/navigation';
   import { api } from '$lib/api';
   import { isLoggedIn } from '$lib/stores/auth';
@@ -100,6 +101,12 @@
     }
   }
 
+  let challengeCode = $state('');
+
+  onMount(() => {
+    challengeCode = $page.url.searchParams.get('challenge') || '';
+  });
+
   async function finishQuiz() {
     if (submitting || quizFinished) return;
     submitting = true;
@@ -111,8 +118,11 @@
         quiz_id: quiz.id,
         answers,
         time_spent: timeSpent,
+        challenge_code: challengeCode || undefined,
       });
-      goto(`/quizzes/${quiz.id}/results?attemptId=${result.id}`);
+      const params = new URLSearchParams({ attemptId: result.id });
+      if (challengeCode) params.set('challenge', challengeCode);
+      goto(`/quizzes/${quiz.id}/results?${params}`);
     } catch (e) {
       goto(`/quizzes/${quiz.id}/results`);
     }

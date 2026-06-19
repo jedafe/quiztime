@@ -151,6 +151,7 @@ class AttemptSubmit(BaseModel):
     quiz_id: UUID
     answers: dict[str, list[int]] = {}
     time_spent: int = Field(default=0, ge=0)
+    challenge_code: Optional[str] = None
 
 
 class AttemptResponse(BaseModel):
@@ -180,3 +181,87 @@ class QuizStats(BaseModel):
     avg_score: float
     avg_percentage: float
     best_score: int
+
+
+# ── Share ──────────────────────────────────────────────
+class ShareLinkCreate(BaseModel):
+    quiz_id: UUID
+    attempt_id: UUID
+
+
+class ShareLinkResponse(BaseModel):
+    code: str
+    share_url: str
+    og_url: str
+
+
+class ShareLinkDetail(BaseModel):
+    quiz_title: str
+    username: str
+    score: int
+    total: int
+    percentage: float
+    grade: str
+    time_spent: int
+
+    class Config:
+        from_attributes = True
+
+
+# ── Challenge ──────────────────────────────────────────
+class ChallengeCreate(BaseModel):
+    quiz_id: UUID
+    score_to_beat: int
+    total_questions: int
+    challenger_attempt_id: UUID
+
+
+class ChallengeResponse(BaseModel):
+    id: UUID
+    quiz_id: UUID
+    quiz_title: str = ""
+    challenger_username: str = ""
+    score_to_beat: int
+    total_questions: int
+    challenge_code: str
+    status: str
+    expires_at: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ChallengeResult(BaseModel):
+    challenger_username: str
+    challenger_score: int
+    challenger_total: int
+    challenger_percentage: float
+    challenger_time: int
+    challengee_username: Optional[str] = None
+    challengee_score: Optional[int] = None
+    challengee_total: Optional[int] = None
+    challengee_percentage: Optional[float] = None
+    challengee_time: Optional[int] = None
+    winner: Optional[str] = None
+    status: str
+
+
+# ── Leaderboard ────────────────────────────────────────
+class LeaderboardEntry(BaseModel):
+    rank: int
+    username: str
+    user_id: UUID
+    score: int
+    total: int
+    percentage: float
+    time_spent: int
+    created_at: datetime
+
+
+class LeaderboardResponse(BaseModel):
+    quiz_id: UUID
+    entries: list[LeaderboardEntry]
+    total_entries: int
+    current_user_entry: Optional[LeaderboardEntry] = None
+    current_user_rank: Optional[int] = None

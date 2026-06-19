@@ -73,7 +73,37 @@ npm run dev
 | admin | admin123 | admin |
 | demo  | demo123  | user  |
 
-## API Docs
+## API Endpoints
+
+| Method | Endpoint | Auth | Purpose |
+|--------|----------|------|---------|
+| POST | /api/auth/register | No | Create account |
+| POST | /api/auth/login | No | Get JWT token |
+| GET | /api/auth/me | Yes | Current user |
+| GET | /api/quizzes | No | List quizzes (paginated) |
+| POST | /api/quizzes | Yes | Create quiz |
+| GET | /api/quizzes/{id} | No | Quiz detail (answers hidden) |
+| GET | /api/quizzes/{id}/manage | Owner | Quiz with answers |
+| GET | /api/quizzes/{id}/leaderboard | Yes | Per-quiz leaderboard |
+| PUT | /api/quizzes/{id} | Owner | Update quiz |
+| DELETE | /api/quizzes/{id} | Owner | Delete quiz |
+| POST | /api/questions/{quizId} | Owner | Add question |
+| PUT | /api/questions/{id} | Owner | Update question |
+| DELETE | /api/questions/{id} | Owner | Delete question |
+| GET | /api/categories | No | List categories |
+| POST | /api/categories | Admin | Create category |
+| POST | /api/attempts | Yes | Submit quiz attempt |
+| GET | /api/attempts/mine | Yes | User's attempt history |
+| GET | /api/attempts/{id} | Yes | Get attempt by ID |
+| GET | /api/attempts/quiz/{id}/stats | No | Quiz statistics |
+| POST | /api/share | Yes | Create share link |
+| GET | /api/share/{code} | No | Resolve share link |
+| GET | /api/share/{code}/og | No | OG image card HTML |
+| POST | /api/challenges | Yes | Create challenge |
+| GET | /api/challenges | Yes | List my challenges |
+| GET | /api/challenges/{code} | No | Get challenge |
+| POST | /api/challenges/{code}/accept | Yes | Accept challenge |
+| GET | /api/challenges/{code}/result | No | Challenge comparison result |
 
 Visit http://localhost:8000/docs for interactive Swagger documentation.
 
@@ -94,13 +124,16 @@ Visit http://localhost:8000/docs for interactive Swagger documentation.
 │   │       ├── quizzes.py   # Quiz CRUD
 │   │       ├── questions.py # Question CRUD
 │   │       ├── categories.py# Category management
-│   │       └── attempts.py  # Quiz submission + stats
+│   │       ├── attempts.py  # Quiz submission + stats
+│   │       ├── share.py     # Share link creation + OG cards
+│   │       └── challenges.py# Challenge system
 │   ├── seed.py              # Seed demo data
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── frontend/          → SvelteKit + Tailwind + Skeleton
 │   ├── src/
 │   │   ├── routes/          # SvelteKit pages
+│   │   │   └── challenge/[code]/  # Challenge landing page
 │   │   ├── lib/
 │   │   │   ├── api.ts       # API client
 │   │   │   └── stores/      # Svelte stores (auth)
@@ -121,3 +154,6 @@ Visit http://localhost:8000/docs for interactive Swagger documentation.
 - Role-based access (admin/user)
 - Quiz creation and management
 - Attempt history and statistics
+- Shareable result links with OG image cards
+- Challenge system (score-to-beat, accept, compare results)
+- Per-quiz leaderboard with period filtering (today/week/month/all)

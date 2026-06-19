@@ -19,14 +19,17 @@
 │       ├── quizzes.py    # CRUD + /manage, /take (paginated)
 │       ├── questions.py  # CRUD per quiz
 │       ├── categories.py # CRUD
-│       └── attempts.py   # Submit, mine, stats, get by id
+│       ├── attempts.py   # Submit, mine, stats, get by id
+│       ├── share.py      # Share links + OG cards
+│       └── challenges.py # Challenge system
 ├── tests/
 │   ├── conftest.py       # Fixtures: test client, SQLite override
 │   ├── test_auth.py
 │   ├── test_quizzes.py
 │   ├── test_questions.py
 │   ├── test_categories.py
-│   └── test_attempts.py
+│   ├── test_attempts.py
+│   └── test_share_challenge.py
 ├── alembic/              # DB migrations
 ├── seed.py               # Demo data seeder
 └── requirements.txt`;
@@ -49,8 +52,9 @@
 │       │   └── [id]/
 │       │       ├── +page.svelte     # Detail
 │       │       ├── take/            # Player
-│       │       ├── results/         # Score
+│       │       ├── results/         # Score + share + challenge
 │       │       └── edit/            # Manage
+│       │   └── challenge/[code]/    # Challenge landing + accept
 │       ├── dashboard/
 │       ├── create/
 │       └── docs/
@@ -146,7 +150,7 @@ docs: add developer guide`;
 <svelte:head>
   <title>Developer Guide — QuizTime</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 </svelte:head>
 
@@ -274,7 +278,9 @@ docs: add developer guide`;
               <tr><td><code>quizzes</code></td><td>id, title, description, created_by FK</td><td>Index on created_by</td></tr>
               <tr><td><code>questions</code></td><td>id, quiz_id FK, category_id FK, type, text, options, answer</td><td>JSON columns, FK indexes</td></tr>
               <tr><td><code>categories</code></td><td>id, name</td><td>Unique name</td></tr>
-              <tr><td><code>quiz_attempts</code></td><td>id, quiz_id FK, user_id FK, answers, score, total, time_spent</td><td>FK indexes</td></tr>
+              <tr><td><code>quiz_attempts</code></td><td>id, quiz_id FK, user_id FK, answers, score, total, time_spent</td><td>FK indexes, leaderboard index (quiz_id, score desc, time_spent asc, created_at)</td></tr>
+              <tr><td><code>share_links</code></td><td>id, quiz_id FK, attempt_id FK, code (unique)</td><td>Unique code index</td></tr>
+              <tr><td><code>challenges</code></td><td>id, quiz_id FK, challenger_id FK, challenge_code (unique), score_to_beat, status, expires_at, challenger_attempt_id, challengee_attempt_id</td><td>Auto-expires after 7 days</td></tr>
             </tbody>
           </table>
         </div>
@@ -303,10 +309,19 @@ docs: add developer guide`;
               <tr><td><span class="badge variant-filled-error">DELETE</span></td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Delete question</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/categories</td><td>No</td><td>List categories</td></tr>
               <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/categories</td><td>Admin</td><td>Create category</td></tr>
-              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/attempts</td><td>Yes</td><td>Submit attempt (server-side scoring)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/attempts</td><td>Yes</td><td>Submit attempt (server-side scoring, optional challenge_code)</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/mine</td><td>Yes</td><td>User's attempts</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/{'{id}'}</td><td>Yes</td><td>Get attempt by ID</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/quiz/{'{id}'}/stats</td><td>No</td><td>Quiz statistics (total, avg, best)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/share</td><td>Yes</td><td>Create share link (dedup per attempt)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/share/{'{code}'}</td><td>No</td><td>Resolve share link</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/share/{'{code}'}/og</td><td>No</td><td>OG image card HTML page (base64 SVG)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/challenges</td><td>Yes</td><td>Create challenge (score-to-beat)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges</td><td>Yes</td><td>List my created challenges</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges/{'{code}'}</td><td>No</td><td>Get challenge details</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/challenges/{'{code}'}/accept</td><td>Yes</td><td>Accept challenge (status → accepted)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges/{'{code}'}/result</td><td>No</td><td>Challenge comparison (challenger vs challengee)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/leaderboard</td><td>Yes</td><td>Per-quiz leaderboard (?period=today|week|month|all, ?limit=N)</td></tr>
             </tbody>
           </table>
         </div>

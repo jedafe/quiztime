@@ -1,5 +1,22 @@
 # AGENTS.md — quiz-v7
 
+## Feature Roadmap
+
+See [FEATURES.md](./FEATURES.md) for the full planned feature roadmap. Each feature has a detailed implementation skill file in `.config/opencode/skills/`.
+
+| Priority | Feature | Skill File |
+|----------|---------|------------|
+| Tier 1 | Share & Challenge System | `share-challenge-feature.md` |
+| Tier 1 | Public Leaderboards | `leaderboard-feature.md` |
+| Tier 2 | Search, Filtering & Sorting | — |
+| Tier 2 | Ratings & Reviews | — |
+| Tier 3 | Gamification (XP/Badges) | — |
+| Tier 3 | Email System | — |
+| Tier 4 | Embeddable Quizzes | — |
+| Tier 4 | Quiz Import/Export | — |
+| Tier 5 | Multi-Language / i18n | — |
+| Tier 5 | Admin Dashboard | — |
+
 ## Architecture
 
 Full-stack monorepo: **FastAPI** (Python) backend + **SvelteKit** (TypeScript) frontend.

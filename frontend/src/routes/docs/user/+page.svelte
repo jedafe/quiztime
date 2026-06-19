@@ -151,8 +151,14 @@
       <ul class="mt-2 space-y-1 text-sm">
         <li>• <strong>"Retry Quiz"</strong> — Take the same quiz again.</li>
         <li>• <strong>"Browse More"</strong> — Go back to the quiz list.</li>
+        <li>• <strong>"Share Result"</strong> — Creates a shareable link with an OG image card you can post on social media.</li>
+        <li>• <strong>"Challenge Friend"</strong> — Generate a challenge link with your score. Friends can accept and try to beat it.</li>
       </ul>
       <p class="mt-2 text-sm opacity-50">Scores are calculated server-side — tamper-proof.</p>
+      <h3 class="mt-4 font-semibold">Leaderboard</h3>
+      <p class="text-sm">Every quiz has a leaderboard tab showing top scores. Filter by period (Today, This Week, This Month, All Time). Only your best attempt counts.</p>
+      <h3 class="mt-4 font-semibold">Challenges</h3>
+      <p class="text-sm">After taking a quiz, click "Challenge Friend" to generate a challenge link. Share it with anyone — they accept and take the same quiz. Results compare both scores side-by-side.</p>
     </section>
 
     <section id="dashboard" class="frame overflow-hidden p-6">

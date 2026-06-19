@@ -88,6 +88,7 @@ class QuizAttempt(Base):
     __table_args__ = (
         Index("ix_quiz_attempts_quiz_id", "quiz_id"),
         Index("ix_quiz_attempts_user_id", "user_id"),
+        Index("ix_quiz_attempts_score_desc", "quiz_id", "score", "time_spent"),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -101,3 +102,44 @@ class QuizAttempt(Base):
 
     quiz = relationship("Quiz", back_populates="attempts")
     user = relationship("User", back_populates="attempts")
+
+
+class ShareLink(Base):
+    __tablename__ = "share_links"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
+    attempt_id = Column(UUID(as_uuid=True), ForeignKey("quiz_attempts.id"), nullable=False)
+    code = Column(String(12), unique=True, nullable=False, index=True)
+    created_at = Column(DateTime, default=utcnow)
+
+    quiz = relationship("Quiz")
+    attempt = relationship("QuizAttempt")
+
+
+class ChallengeStatus(str, enum.Enum):
+    pending = "pending"
+    accepted = "accepted"
+    completed = "completed"
+    expired = "expired"
+
+
+class Challenge(Base):
+    __tablename__ = "challenges"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
+    challenger_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    score_to_beat = Column(Integer, nullable=False)
+    total_questions = Column(Integer, nullable=False)
+    challenger_attempt_id = Column(UUID(as_uuid=True), ForeignKey("quiz_attempts.id"), nullable=True)
+    challengee_attempt_id = Column(UUID(as_uuid=True), ForeignKey("quiz_attempts.id"), nullable=True)
+    challenge_code = Column(String(12), unique=True, nullable=False, index=True)
+    status = Column(String(20), default=ChallengeStatus.pending, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=utcnow)
+
+    quiz = relationship("Quiz")
+    challenger = relationship("User", foreign_keys=[challenger_id])
+    challenger_attempt = relationship("QuizAttempt", foreign_keys=[challenger_attempt_id])
+    challengee_attempt = relationship("QuizAttempt", foreign_keys=[challengee_attempt_id])

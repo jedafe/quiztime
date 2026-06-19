@@ -90,7 +90,7 @@ function buildApi(fetchFn: FetchFn) {
     createCategory: (data: { name: string }) =>
       request<any>(fetchFn, '/categories', { method: 'POST', body: JSON.stringify(data) }),
 
-    submitAttempt: (data: { quiz_id: string; answers: Record<string, number[]>; time_spent: number }) =>
+    submitAttempt: (data: { quiz_id: string; answers: Record<string, number[]>; time_spent: number; challenge_code?: string }) =>
       request<any>(fetchFn, '/attempts', { method: 'POST', body: JSON.stringify(data) }),
 
     myAttempts: () => request<any[]>(fetchFn, '/attempts/mine'),
@@ -98,6 +98,35 @@ function buildApi(fetchFn: FetchFn) {
     getAttempt: (id: string) => request<any>(fetchFn, `/attempts/${id}`),
 
     quizStats: (quizId: string) => request<any>(fetchFn, `/attempts/quiz/${quizId}/stats`),
+
+    // ── Share ──────────────────────────────────────────
+    createShareLink: (data: { quiz_id: string; attempt_id: string }) =>
+      request<{ code: string; share_url: string; og_url: string }>(fetchFn, '/share', {
+        method: 'POST', body: JSON.stringify(data),
+      }),
+
+    getShareLink: (code: string) =>
+      request<any>(fetchFn, `/share/${code}`),
+
+    // ── Challenge ──────────────────────────────────────
+    createChallenge: (data: { quiz_id: string; score_to_beat: number; total_questions: number; challenger_attempt_id: string }) =>
+      request<any>(fetchFn, '/challenges', { method: 'POST', body: JSON.stringify(data) }),
+
+    getChallenge: (code: string) =>
+      request<any>(fetchFn, `/challenges/${code}`),
+
+    acceptChallenge: (code: string) =>
+      request<any>(fetchFn, `/challenges/${code}/accept`, { method: 'POST' }),
+
+    getChallengeResult: (code: string) =>
+      request<any>(fetchFn, `/challenges/${code}/result`),
+
+    myChallenges: () =>
+      request<any[]>(fetchFn, '/challenges'),
+
+    // ── Leaderboard ────────────────────────────────────
+    getLeaderboard: (quizId: string, limit = 20, period = 'all') =>
+      request<any>(fetchFn, `/quizzes/${quizId}/leaderboard?limit=${limit}&period=${period}`),
   };
 }
 

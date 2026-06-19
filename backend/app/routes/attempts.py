@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from app.database import get_db
-from app.models import QuizAttempt, Quiz, Question, User
+from app.models import QuizAttempt, Quiz, Question, User, Challenge
 from app.schemas import AttemptSubmit, AttemptResponse, QuizStats
 from app.auth import get_current_user
 
@@ -49,6 +49,21 @@ async def submit_attempt(
     db.add(attempt)
     await db.commit()
     await db.refresh(attempt)
+
+    if data.challenge_code:
+        chal_result = await db.execute(
+            select(Challenge).where(
+                Challenge.challenge_code == data.challenge_code,
+                Challenge.quiz_id == data.quiz_id,
+                Challenge.status.in_(["pending", "accepted"]),
+            )
+        )
+        challenge = chal_result.scalar_one_or_none()
+        if challenge:
+            challenge.challengee_attempt_id = attempt.id
+            challenge.status = "completed"
+            await db.commit()
+
     return attempt
 
 
