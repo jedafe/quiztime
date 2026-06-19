@@ -7,7 +7,7 @@
   let { data }: { data: PageData } = $props();
   let quiz = data.quiz;
   let stats: any = $state(null);
-  let tab = $state<'stats' | 'leaderboard'>('stats');
+  let tab = $state<'stats' | 'leaderboard' | 'reviews'>('stats');
 
   // ── Leaderboard state ──
   let leaderboard: any = $state(null);
@@ -42,6 +42,56 @@
     return `#${rank}`;
   }
 
+  // ── Reviews state ──
+  let reviews: any[] = $state([]);
+  let reviewStats: any = $state(null);
+  let myRating: any = $state(null);
+  let rvLoading = $state(false);
+  let rvScore = $state(0);
+  let rvReview = $state('');
+  let rvSubmitting = $state(false);
+  let rvError = $state('');
+  let rvSuccess = $state('');
+
+  async function loadReviews() {
+    rvLoading = true;
+    try {
+      const [rResult, sResult] = await Promise.all([
+        api.listRatings(quiz.id),
+        api.ratingStats(quiz.id),
+      ]);
+      reviews = rResult.items;
+      reviewStats = sResult;
+    } catch {}
+    try {
+      myRating = await api.myRating(quiz.id);
+      rvScore = myRating.score;
+      rvReview = myRating.review || '';
+    } catch {
+      myRating = null;
+    }
+    rvLoading = false;
+  }
+
+  async function submitRating() {
+    if (rvScore < 1) { rvError = 'Please select a score'; return; }
+    rvSubmitting = true;
+    rvError = '';
+    rvSuccess = '';
+    try {
+      myRating = await api.createRating({ quiz_id: quiz.id, score: rvScore, review: rvReview || undefined });
+      rvSuccess = 'Rating saved!';
+      await loadReviews();
+    } catch (e: any) {
+      rvError = e.message;
+    }
+    rvSubmitting = false;
+  }
+
+  function starLabel(score: number): string {
+    return '★'.repeat(score) + '☆'.repeat(5 - score);
+  }
+
   onMount(async () => {
     try {
       stats = await api.quizStats(quiz.id);
@@ -69,16 +119,14 @@
         <span class="text-2xl font-bold text-[var(--color-primary-500)]">{quiz.questions?.length || 0}</span>
         <span class="eyebrow justify-center">Questions</span>
       </div>
-      {#if stats}
-        <div class="stat-pill text-center">
-          <span class="text-2xl font-bold text-[var(--color-secondary-500)]">{stats.total_attempts}</span>
-          <span class="eyebrow justify-center">Attempts</span>
-        </div>
-        <div class="stat-pill text-center">
-          <span class="text-2xl font-bold text-[var(--color-tertiary-500)]">{stats.avg_percentage}%</span>
-          <span class="eyebrow justify-center">Avg Score</span>
-        </div>
-      {/if}
+      <div class="stat-pill text-center">
+        <span class="text-2xl font-bold text-[var(--color-secondary-500)]">{quiz.attempt_count || 0}</span>
+        <span class="eyebrow justify-center">Attempts</span>
+      </div>
+      <div class="stat-pill text-center">
+        <span class="text-2xl font-bold text-[var(--color-warning-500)]">{quiz.avg_rating > 0 ? quiz.avg_rating : '—'}</span>
+        <span class="eyebrow justify-center">Rating</span>
+      </div>
     </div>
 
     <div class="mt-8 flex justify-end gap-2">
@@ -101,6 +149,11 @@
       style={tab === 'leaderboard' ? 'background-color:var(--color-primary-500);color:#fff' : ''}
       onclick={() => tab = 'leaderboard'}
     >Leaderboard</button>
+    <button
+      class="btn-pill btn-pill-ghost btn-pill-sm"
+      style={tab === 'reviews' ? 'background-color:var(--color-primary-500);color:#fff' : ''}
+      onclick={() => { tab = 'reviews'; loadReviews(); }}
+    >Reviews</button>
   </div>
 
   {#if tab === 'stats'}
@@ -201,6 +254,95 @@
         <p class="mt-3 text-center text-xs opacity-40">
           {leaderboard.total_entries} participant{leaderboard.total_entries !== 1 ? 's' : ''}
         </p>
+      {/if}
+    </div>
+  {:else if tab === 'reviews'}
+    <!-- Reviews -->
+    <div class="mt-6">
+      {#if reviewStats}
+        <div class="frame mb-4 p-4">
+          <div class="flex items-center gap-4">
+            <div class="text-center">
+              <div class="text-3xl font-bold text-[var(--color-warning-500)]">{reviewStats.avg_rating}</div>
+              <div class="text-xs opacity-40">out of 5</div>
+            </div>
+            <div class="flex-1">
+              <div class="flex gap-0.5 text-lg text-[var(--color-warning-500)]">{starLabel(Math.round(reviewStats.avg_rating))}</div>
+              <div class="mt-1 text-sm opacity-50">{reviewStats.total_ratings} rating{reviewStats.total_ratings !== 1 ? 's' : ''}</div>
+              <div class="mt-2 space-y-0.5">
+                {#each [5, 4, 3, 2, 1] as s}
+                  <div class="flex items-center gap-2 text-xs">
+                    <span class="w-4 text-right">{s}</span>
+                    <div class="h-2 flex-1 rounded-full bg-[var(--color-surface-200-800)]">
+                      <div
+                        class="h-full rounded-full bg-[var(--color-warning-500)] transition-all"
+                        style="width: {reviewStats.total_ratings > 0 ? (reviewStats.distribution[s] || 0) / reviewStats.total_ratings * 100 : 0}%"
+                      ></div>
+                    </div>
+                    <span class="w-6 text-right opacity-40">{reviewStats.distribution[s] || 0}</span>
+                  </div>
+                {/each}
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      {#if $isLoggedIn}
+        <div class="frame mb-4 p-4">
+          <h3 class="mb-3 font-semibold">{myRating ? 'Your Rating' : 'Rate this Quiz'}</h3>
+          <div class="flex gap-1 text-2xl">
+            {#each [1, 2, 3, 4, 5] as s}
+              <button
+                class="transition-colors"
+                style="color: {s <= rvScore ? 'var(--color-warning-500)' : 'var(--color-surface-400-600)'}"
+                onclick={() => rvScore = s}
+              >★</button>
+            {/each}
+          </div>
+          <textarea
+            bind:value={rvReview}
+            placeholder="Optional review..."
+            class="mt-3 w-full rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-50-950)] p-3 text-sm outline-none transition-colors focus:border-[var(--color-primary-500)]"
+            rows="3"
+          ></textarea>
+          {#if rvError}<p class="mt-1 text-xs text-[var(--color-error-500)]">{rvError}</p>{/if}
+          {#if rvSuccess}<p class="mt-1 text-xs text-[var(--color-success-500)]">{rvSuccess}</p>{/if}
+          <button
+            onclick={submitRating}
+            disabled={rvSubmitting}
+            class="btn-pill btn-pill-primary mt-3"
+          >{rvSubmitting ? 'Saving...' : 'Save Rating'}</button>
+        </div>
+      {:else}
+        <div class="frame mb-4 p-4 text-center">
+          <p class="text-sm opacity-50">Please <a href="/login" class="text-[var(--color-primary-500)]">log in</a> to rate this quiz.</p>
+        </div>
+      {/if}
+
+      {#if rvLoading}
+        <div class="flex justify-center py-6"><span class="text-sm opacity-40">Loading...</span></div>
+      {:else if reviews.length === 0}
+        <div class="py-10 text-center">
+          <p class="text-sm opacity-50">No reviews yet.</p>
+        </div>
+      {:else}
+        <div class="space-y-3">
+          {#each reviews as r}
+            <div class="frame p-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium text-sm">{r.username}</span>
+                  <span class="text-sm text-[var(--color-warning-500)]">{starLabel(r.score)}</span>
+                </div>
+                <span class="text-xs opacity-40">{new Date(r.created_at).toLocaleDateString()}</span>
+              </div>
+              {#if r.review}
+                <p class="mt-1 text-sm opacity-60">{r.review}</p>
+              {/if}
+            </div>
+          {/each}
+        </div>
       {/if}
     </div>
   {/if}

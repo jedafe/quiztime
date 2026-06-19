@@ -116,6 +116,8 @@ class QuizResponse(BaseModel):
     created_by: UUID
     created_at: datetime
     question_count: int = 0
+    attempt_count: int = 0
+    avg_rating: float = 0.0
 
     class Config:
         from_attributes = True
@@ -128,6 +130,8 @@ class QuizDetail(BaseModel):
     created_by: UUID
     created_at: datetime
     questions: list[QuestionPublic] = []
+    attempt_count: int = 0
+    avg_rating: float = 0.0
 
     class Config:
         from_attributes = True
@@ -265,3 +269,34 @@ class LeaderboardResponse(BaseModel):
     total_entries: int
     current_user_entry: Optional[LeaderboardEntry] = None
     current_user_rank: Optional[int] = None
+
+
+# ── Ratings & Reviews ──────────────────────────────────
+class RatingCreate(BaseModel):
+    quiz_id: UUID
+    score: int = Field(ge=1, le=5)
+    review: Optional[str] = None
+
+
+class RatingUpdate(BaseModel):
+    score: Optional[int] = Field(default=None, ge=1, le=5)
+    review: Optional[str] = None
+
+
+class RatingResponse(BaseModel):
+    id: UUID
+    quiz_id: UUID
+    user_id: UUID
+    username: str = ""
+    score: int
+    review: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class RatingStats(BaseModel):
+    avg_rating: float
+    total_ratings: int
+    distribution: dict[int, int]  # score -> count

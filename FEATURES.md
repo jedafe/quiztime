@@ -31,12 +31,16 @@ After finishing a quiz, users can:
 ## Tier 2 — Discovery & Social Proof
 
 ### 3. Quiz Search, Filtering & Sorting
+**Status**: Skill file ready → `.config/opencode/skills/search-filter-sort-feature.md`
+
 - Search bar on browse page (search by title, description)
 - Category/tag filtering
 - Sort by: newest, popular (most attempts), highest rated
 - Proper pagination UI (currently uses `page_size=100` with no pagination controls)
 
 ### 4. Quiz Ratings & Reviews
+**Status**: Skill file ready → `.config/opencode/skills/ratings-reviews-feature.md`
+
 - 5-star rating system per quiz
 - Optional written review
 - Average rating shown on quiz cards and detail page

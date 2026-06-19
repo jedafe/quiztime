@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import get_settings
 from app.database import get_engine, Base
-from app.routes import auth, quizzes, questions, categories, attempts, share, challenges
+from app.routes import auth, quizzes, questions, categories, attempts, share, challenges, ratings
 
 settings = get_settings()
 
@@ -33,6 +33,7 @@ app.include_router(categories.router)
 app.include_router(attempts.router)
 app.include_router(share.router)
 app.include_router(challenges.router)
+app.include_router(ratings.router)
 
 
 @app.get("/api/health")

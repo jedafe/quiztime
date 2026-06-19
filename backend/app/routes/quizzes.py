@@ -3,12 +3,13 @@ from datetime import datetime, timezone, timedelta
 from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, case
 from app.database import get_db
-from app.models import Quiz, Question, User, QuizAttempt
+from app.models import Quiz, Question, User, QuizAttempt, Rating
 from app.schemas import (
     QuizCreate, QuizUpdate, QuizResponse, QuizDetail, QuizWithAnswers,
     QuestionPublic, PaginatedQuizzes, LeaderboardResponse, LeaderboardEntry,
+    RatingStats,
 )
 from app.auth import get_current_user, require_admin
 
@@ -19,22 +20,62 @@ router = APIRouter(prefix="/api/quizzes", tags=["quizzes"])
 async def list_quizzes(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
+    search: str = Query("", max_length=200),
+    category_id: UUID = Query(None),
+    sort_by: str = Query("newest", pattern="^(newest|popular|rating)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
 ):
     offset = (page - 1) * page_size
 
-    # Total count
-    count_q = await db.execute(select(func.count(Quiz.id)))
-    total = count_q.scalar() or 0
+    # Build base query
+    q = select(Quiz, func.count(Question.id).label("question_count"))
 
-    result = await db.execute(
-        select(Quiz, func.count(Question.id).label("question_count"))
-        .outerjoin(Question)
-        .group_by(Quiz.id)
-        .order_by(Quiz.created_at.desc())
-        .offset(offset)
-        .limit(page_size)
+    if category_id:
+        q = q.join(Question).where(Question.category_id == category_id)
+    else:
+        q = q.outerjoin(Question)
+
+    if search:
+        pattern = f"%{search}%"
+        q = q.where(
+            Quiz.title.ilike(pattern) | Quiz.description.ilike(pattern)
+        )
+
+    q = q.group_by(Quiz.id)
+
+    # Total count (without LIMIT/OFFSET)
+    count_q = select(func.count()).select_from(q.subquery())
+    count_result = await db.execute(count_q)
+    total = count_result.scalar() or 0
+
+    # Add computed columns for sorting
+    attempt_count_subq = (
+        select(func.count(QuizAttempt.id).label("cnt"))
+        .where(QuizAttempt.quiz_id == Quiz.id)
+        .correlate(Quiz)
+        .scalar_subquery()
     )
+    avg_rating_subq = (
+        select(func.coalesce(func.avg(Rating.score), 0).label("avg_r"))
+        .where(Rating.quiz_id == Quiz.id)
+        .correlate(Quiz)
+        .scalar_subquery()
+    )
+
+    q = q.add_columns(attempt_count_subq.label("attempt_count"))
+    q = q.add_columns(avg_rating_subq.label("avg_rating"))
+
+    order_col = Quiz.created_at
+    if sort_by == "popular":
+        order_col = attempt_count_subq
+    elif sort_by == "rating":
+        order_col = avg_rating_subq
+
+    order_fn = order_col.desc() if sort_order == "desc" else order_col.asc()
+    q = q.order_by(order_fn)
+
+    result = await db.execute(q.offset(offset).limit(page_size))
     items = [
         QuizResponse(
             id=quiz.id,
@@ -42,9 +83,11 @@ async def list_quizzes(
             description=quiz.description,
             created_by=quiz.created_by,
             created_at=quiz.created_at,
-            question_count=count,
+            question_count=qcount,
+            attempt_count=acount or 0,
+            avg_rating=round(float(arating or 0), 1),
         )
-        for quiz, count in result.all()
+        for quiz, qcount, acount, arating in result.all()
     ]
     return PaginatedQuizzes(
         items=items,
@@ -81,12 +124,24 @@ async def get_quiz(quiz_id: UUID, db: AsyncSession = Depends(get_db)):
     q_result = await db.execute(select(Question).where(Question.quiz_id == quiz_id))
     questions = q_result.scalars().all()
 
+    ac_result = await db.execute(
+        select(func.count(QuizAttempt.id)).where(QuizAttempt.quiz_id == quiz_id)
+    )
+    attempt_count = ac_result.scalar() or 0
+
+    ar_result = await db.execute(
+        select(func.coalesce(func.avg(Rating.score), 0)).where(Rating.quiz_id == quiz_id)
+    )
+    avg_rating = round(float(ar_result.scalar() or 0), 1)
+
     return QuizDetail(
         id=quiz.id,
         title=quiz.title,
         description=quiz.description,
         created_by=quiz.created_by,
         created_at=quiz.created_at,
+        attempt_count=attempt_count,
+        avg_rating=avg_rating,
         questions=[
             QuestionPublic(id=q.id, type=q.type, text=q.text, options=q.options)
             for q in questions

@@ -8,8 +8,8 @@ See [FEATURES.md](./FEATURES.md) for the full planned feature roadmap. Each feat
 |----------|---------|------------|
 | Tier 1 | Share & Challenge System | `share-challenge-feature.md` |
 | Tier 1 | Public Leaderboards | `leaderboard-feature.md` |
-| Tier 2 | Search, Filtering & Sorting | — |
-| Tier 2 | Ratings & Reviews | — |
+| Tier 2 | Search, Filtering & Sorting | `search-filter-sort-feature.md` |
+| Tier 2 | Ratings & Reviews | `ratings-reviews-feature.md` |
 | Tier 3 | Gamification (XP/Badges) | — |
 | Tier 3 | Email System | — |
 | Tier 4 | Embeddable Quizzes | — |

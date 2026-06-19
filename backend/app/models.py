@@ -62,6 +62,7 @@ class Quiz(Base):
     owner = relationship("User", back_populates="quizzes")
     questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
     attempts = relationship("QuizAttempt", back_populates="quiz", cascade="all, delete-orphan")
+    ratings = relationship("Rating", back_populates="quiz", cascade="all, delete-orphan")
 
 
 class Question(Base):
@@ -122,6 +123,25 @@ class ChallengeStatus(str, enum.Enum):
     accepted = "accepted"
     completed = "completed"
     expired = "expired"
+
+
+class Rating(Base):
+    __tablename__ = "ratings"
+    __table_args__ = (
+        Index("ix_ratings_quiz_id", "quiz_id"),
+        Index("ix_ratings_user_id", "user_id"),
+        Index("ix_ratings_quiz_user", "quiz_id", "user_id", unique=True),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    score = Column(Integer, nullable=False)
+    review = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+
+    quiz = relationship("Quiz", back_populates="ratings")
+    user = relationship("User")
 
 
 class Challenge(Base):

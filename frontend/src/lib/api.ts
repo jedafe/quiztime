@@ -56,10 +56,19 @@ function buildApi(fetchFn: FetchFn) {
 
     me: () => request<any>(fetchFn, '/auth/me'),
 
-    listQuizzes: (page = 1, pageSize = 100) =>
-      request<{ items: any[]; total: number; page: number; page_size: number; total_pages: number }>(
-        fetchFn, `/quizzes?page=${page}&page_size=${pageSize}`
-      ),
+    listQuizzes: (params?: { page?: number; pageSize?: number; search?: string; category_id?: string; sort_by?: string; sort_order?: string }) => {
+      const p = params || {};
+      const q = new URLSearchParams();
+      q.set('page', String(p.page || 1));
+      q.set('page_size', String(p.pageSize || 20));
+      if (p.search) q.set('search', p.search);
+      if (p.category_id) q.set('category_id', p.category_id);
+      if (p.sort_by) q.set('sort_by', p.sort_by);
+      if (p.sort_order) q.set('sort_order', p.sort_order);
+      return request<{ items: any[]; total: number; page: number; page_size: number; total_pages: number }>(
+        fetchFn, `/quizzes?${q.toString()}`
+      );
+    },
 
     getQuiz: (id: string) => request<any>(fetchFn, `/quizzes/${id}`),
 
@@ -127,6 +136,24 @@ function buildApi(fetchFn: FetchFn) {
     // ── Leaderboard ────────────────────────────────────
     getLeaderboard: (quizId: string, limit = 20, period = 'all') =>
       request<any>(fetchFn, `/quizzes/${quizId}/leaderboard?limit=${limit}&period=${period}`),
+
+    // ── Ratings & Reviews ──────────────────────────────
+    createRating: (data: { quiz_id: string; score: number; review?: string }) =>
+      request<any>(fetchFn, '/ratings', { method: 'POST', body: JSON.stringify(data) }),
+
+    listRatings: (quizId: string, page = 1, pageSize = 20) =>
+      request<{ items: any[]; total: number; page: number; page_size: number }>(
+        fetchFn, `/ratings/${quizId}?page=${page}&page_size=${pageSize}`
+      ),
+
+    ratingStats: (quizId: string) =>
+      request<any>(fetchFn, `/ratings/${quizId}/stats`),
+
+    myRating: (quizId: string) =>
+      request<any>(fetchFn, `/ratings/${quizId}/my`),
+
+    deleteRating: (ratingId: string) =>
+      request<void>(fetchFn, `/ratings/${ratingId}`, { method: 'DELETE' }),
   };
 }
 
