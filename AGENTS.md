@@ -12,8 +12,8 @@ See [FEATURES.md](./FEATURES.md) for the full planned feature roadmap. Each feat
 | Tier 2 | Ratings & Reviews | `ratings-reviews-feature.md` |
 | Tier 3 | Gamification (XP/Badges) | `gamification-xp-badges-feature.md` |
 | Tier 3 | Email System | `email-system-feature.md` |
-| Tier 4 | Embeddable Quizzes | — |
-| Tier 4 | Quiz Import/Export | — |
+| Tier 4 | Embeddable Quizzes | `embeddable-quizzes-feature.md` |
+| Tier 4 | Quiz Import/Export | `import-export-feature.md` |
 | Tier 5 | Multi-Language / i18n | — |
 | Tier 5 | Admin Dashboard | — |
 
