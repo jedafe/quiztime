@@ -81,6 +81,12 @@ function buildApi(fetchFn: FetchFn) {
     deleteQuiz: (id: string) =>
       request<void>(fetchFn, `/quizzes/${id}`, { method: 'DELETE' }),
 
+    exportQuiz: (id: string) =>
+      request<any>(fetchFn, `/quizzes/${id}/export`),
+
+    importQuiz: (data: { title: string; description?: string; category_name?: string | null; questions: any[] }) =>
+      request<any>(fetchFn, '/quizzes/import', { method: 'POST', body: JSON.stringify(data) }),
+
     getQuizManage: (id: string) => request<any>(fetchFn, `/quizzes/${id}/manage`),
 
     getQuizTake: (id: string) => request<any>(fetchFn, `/quizzes/${id}/take`),
@@ -191,6 +197,14 @@ function buildApi(fetchFn: FetchFn) {
       request<{ message: string }>(fetchFn, '/email/reset-password', {
         method: 'POST', body: JSON.stringify({ token, new_password: newPassword }),
       }),
+
+    // ── Embed ────────────────────────────────────────────
+    getEmbedSnippet: (quizId: string) =>
+      request<{ embed_url: string; html: string; javascript: string }>(fetchFn, `/embed/${quizId}/snippet`),
+
+    // ── Embed Submissions (for quiz owner) ───────────────
+    getEmbedSubmissions: (quizId: string) =>
+      request<any[]>(fetchFn, `/embed/${quizId}/submissions`),
   };
 }
 

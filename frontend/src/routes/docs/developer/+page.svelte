@@ -24,7 +24,8 @@
 │       ├── challenges.py # Challenge system
 │       ├── ratings.py    # 5-star ratings + reviews
 │       ├── gamification.py # XP, levels, badges, leaderboard
-│       └── email.py      # Email verify, forgot/reset password
+│       ├── email.py      # Email verify, forgot/reset password
+│       └── embed.py      # Embed widget, data API, submit, submissions, snippet
 ├── tests/
 │   ├── conftest.py       # Fixtures: test client, SQLite override
 │   ├── test_auth.py
@@ -34,8 +35,9 @@
 │   ├── test_attempts.py
 │   ├── test_share_challenge.py
 │   ├── test_gamification.py
-│   ├── test_search_ratings.py
-│   └── test_questions.py
+│       ├── test_search_ratings.py
+│       ├── test_embed.py
+│       └── test_questions.py
 ├── seed.py               # Demo data seeder (categories + subcategories + quiz + questions)
 └── requirements.txt`;
 
@@ -61,7 +63,7 @@
 │       │       └── edit/             # Manage (category + subcategory dropdowns)
 │       │   └── challenge/[code]/     # Challenge landing + accept
 │       ├── dashboard/                # User's quizzes + attempt history + XP card
-│       ├── create/                   # Create quiz (category dropdown)
+│       ├── create/                   # Create quiz (category dropdown + import JSON tab)
 │       ├── achievements/             # Badges gallery + XP history + level progress
 │       ├── verify-email/             # Email verification (?token=)
 │       ├── forgot-password/          # Request password reset
@@ -289,6 +291,7 @@ docs: add developer guide`;
               <tr><td><code>categories</code></td><td>id, name</td><td>Unique name</td></tr>
               <tr><td><code>subcategories</code></td><td>id, name, category_id FK</td><td>FK to categories</td></tr>
               <tr><td><code>quiz_attempts</code></td><td>id, quiz_id FK, user_id FK, answers, score, total, time_spent</td><td>FK indexes, leaderboard index (quiz_id, score desc, time_spent asc, created_at)</td></tr>
+              <tr><td><code>embed_submissions</code></td><td>id, quiz_id FK, submission_name, answers, score, total, time_spent</td><td>Anonymous submissions from embed widget</td></tr>
               <tr><td><code>share_links</code></td><td>id, quiz_id FK, attempt_id FK, code (unique)</td><td>Unique code index</td></tr>
               <tr><td><code>challenges</code></td><td>id, quiz_id FK, challenger_id FK, challenge_code (unique), score_to_beat, status, expires_at, challenger_attempt_id, challengee_attempt_id</td><td>Auto-expires after 7 days</td></tr>
               <tr><td><code>ratings</code></td><td>id, quiz_id FK, user_id FK, score, review, created_at</td><td>Unique per user+quiz</td></tr>
@@ -353,6 +356,13 @@ docs: add developer guide`;
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/xp-history</td><td>Yes</td><td>Paginated XP event history</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/badges</td><td>No</td><td>All badges with earned status</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/leaderboard</td><td>No</td><td>XP leaderboard (top users)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/export</td><td>Owner</td><td>Export quiz as JSON (with answers)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/quizzes/import</td><td>Yes</td><td>Import quiz from JSON file</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/embed/{'{quiz_id}'}/data</td><td>No</td><td>Public quiz data for embed</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/embed/{'{quiz_id}'}/submit</td><td>No</td><td>Anonymous embed submission</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/embed/{'{quiz_id}'}</td><td>No</td><td>Self-contained HTML embed widget</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/embed/{'{quiz_id}'}/snippet</td><td>No</td><td>iframe embed snippet</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/embed/{'{quiz_id}'}/submissions</td><td>Owner</td><td>List embed submissions</td></tr>
             </tbody>
           </table>
         </div>

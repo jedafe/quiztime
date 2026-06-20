@@ -75,15 +75,23 @@ After finishing a quiz, users can:
 ## Tier 4 — Distribution & Content Portability
 
 ### 7. Embeddable Quizzes (Widget)
+**Status**: ✅ Implemented
+
 - Generate an iframe embed snippet
 - Users embed quizzes on their own websites, blogs, or Notion pages
 - Results optionally sent back to the quiz creator
 - Free distribution channel via backlinks
+- Backend: `GET /api/embed/{id}` serves self-contained widget, `POST /api/embed/{id}/submit` for anonymous scoring, `EmbedSubmission` model tracks results
+- Frontend: "Embed" button on quiz detail page shows iframe snippet with copy
 
 ### 8. Quiz Import/Export (JSON)
-- Export any quiz as a downloadable JSON file
+**Status**: ✅ Implemented
+
+- Export any quiz as a downloadable JSON file (owner/admin)
 - Import JSON to create a new quiz (including questions)
 - Enables content migration, backup, and sharing outside the platform
+- Backend: `GET /api/quizzes/{id}/export` and `POST /api/quizzes/import`
+- Frontend: "Export JSON" button on quiz detail page, "Import JSON" tab on create page
 
 ---
 

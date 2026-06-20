@@ -221,6 +221,24 @@ class EmailToken(Base):
     user = relationship("User")
 
 
+class EmbedSubmission(Base):
+    __tablename__ = "embed_submissions"
+    __table_args__ = (
+        Index("ix_embed_submissions_quiz_id", "quiz_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
+    submission_name = Column(String(100), default="")
+    answers = Column(JSON, nullable=False, default=dict)
+    score = Column(Integer, nullable=False, default=0)
+    total = Column(Integer, nullable=False, default=0)
+    time_spent = Column(Integer, nullable=False, default=0)
+    created_at = Column(DateTime, default=utcnow)
+
+    quiz = relationship("Quiz")
+
+
 class Challenge(Base):
     __tablename__ = "challenges"
 

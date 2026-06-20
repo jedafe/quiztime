@@ -112,6 +112,8 @@ All endpoints prefixed with `/api/`:
 | `POST /questions/{quizId}` | Yes (owner) | Add question |
 | `PUT /questions/{id}` | Yes (owner) | Update question |
 | `DELETE /questions/{id}` | Yes (owner) | Delete question |
+| `GET /quizzes/{id}/export` | Yes (owner) | Export quiz as JSON (with answers) |
+| `POST /quizzes/import` | Yes | Import quiz from JSON |
 | `GET /categories` | No | List categories |
 | `POST /categories` | Admin | Create category |
 | `GET /categories/subcategories` | No | List subcategories (?category_id=) |
@@ -127,6 +129,11 @@ All endpoints prefixed with `/api/`:
 | `GET /gamification/xp-history` | Yes | Paginated XP event history |
 | `GET /gamification/badges` | No | All badges with earned status |
 | `GET /gamification/leaderboard` | No | XP leaderboard (top users) |
+| `GET /embed/{quiz_id}/data` | No | Public quiz data for embed (no answers) |
+| `POST /embed/{quiz_id}/submit` | No | Anonymous embed submission with server scoring |
+| `GET /embed/{quiz_id}` | No | Self-contained HTML embed widget |
+| `GET /embed/{quiz_id}/snippet` | No | iframe embed HTML snippet |
+| `GET /embed/{quiz_id}/submissions` | Yes (owner) | List embed submissions |
 
 ## Data Model
 
@@ -136,10 +143,16 @@ All endpoints prefixed with `/api/`:
 - **Category**: id, name
 - **Subcategory**: id, name, category_id FK
 - **QuizAttempt**: id, quiz_id FK, user_id FK, answers (JSON), score, total, time_spent
+- **EmbedSubmission**: id, quiz_id FK, submission_name, answers (JSON), score, total, time_spent
 - **BadgeDefinition**: id, name, description, icon, criteria (JSON)
 - **UserBadge**: user_id FK, badge_id FK, earned_at
 - **XpEvent**: id, user_id FK, source, amount, created_at
 - **EmailToken**: id, user_id FK, token, type, expires_at, used
+
+## Gotchas (continued)
+
+- **Embed widget** served as inline HTML from FastAPI at `/api/embed/{id}` — no frontend route; uses `window.parent.postMessage` for result communication
+- **Import/Export endpoints** only accessible to quiz owner or admin (prevents answer leakage)
 
 ## Frontend Routes
 

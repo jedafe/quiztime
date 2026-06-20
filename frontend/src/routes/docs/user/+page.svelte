@@ -48,6 +48,8 @@
     <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Your Dashboard</a>
     <a href="#creating" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Creating a Quiz</a>
     <a href="#editing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Editing a Quiz</a>
+    <a href="#import-export" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Import &amp; Export</a>
+    <a href="#embed" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Embed Quizzes</a>
     <a href="#themes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Themes</a>
     <a href="#faq" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">FAQ</a>
   </div>
@@ -67,6 +69,8 @@
         <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Your Dashboard</a>
         <a href="#creating" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Creating a Quiz</a>
         <a href="#editing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Editing a Quiz</a>
+        <a href="#import-export" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Import &amp; Export</a>
+        <a href="#embed" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Embed Quizzes</a>
         <a href="#themes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Themes</a>
         <a href="#faq" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">FAQ</a>
       </div>
@@ -218,6 +222,42 @@
         <li>• <strong>Add:</strong> Use the form at the bottom.</li>
         <li>• <strong>Delete:</strong> Click "Delete" and confirm in the modal dialog.</li>
       </ul>
+    </section>
+
+    <section id="import-export" class="frame overflow-hidden p-6">
+      <h2 class="mb-4 text-2xl font-bold">Import &amp; Export</h2>
+      <h3 class="mt-4 font-semibold">Exporting a Quiz</h3>
+      <p class="text-sm">If you own a quiz, open its detail page and click <strong>"Export JSON"</strong>. A JSON file containing the quiz and all its questions (including correct answers) downloads to your computer.</p>
+      <h3 class="mt-4 font-semibold">Importing a Quiz</h3>
+      <ol class="mt-2 space-y-1 text-sm">
+        <li>1. Go to <strong>"Create Quiz"</strong> and switch to the <strong>"Import JSON"</strong> tab.</li>
+        <li>2. Upload a JSON file matching the export format (quiz title, description, category name, and questions array).</li>
+        <li>3. Click <strong>"Import Quiz"</strong>. The quiz and all its questions are created automatically.</li>
+      </ol>
+      <div class="mt-4 rounded-lg bg-[var(--color-info-500)]/15 px-4 py-3 text-sm text-[var(--color-info-500)]">
+        Imports require a valid JSON structure. The format guide on the import page shows the expected schema.
+      </div>
+    </section>
+
+    <section id="embed" class="frame overflow-hidden p-6">
+      <h2 class="mb-4 text-2xl font-bold">Embedding Quizzes</h2>
+      <p class="text-sm">You can embed your quizzes on any website, blog, or Notion page using an iframe snippet.</p>
+      <h3 class="mt-4 font-semibold">Getting the Embed Code</h3>
+      <ol class="mt-2 space-y-1 text-sm">
+        <li>1. Open your quiz detail page.</li>
+        <li>2. Click <strong>"Embed"</strong> to open the embed panel.</li>
+        <li>3. Copy the HTML snippet shown.</li>
+        <li>4. Paste it into any website's HTML where you want the quiz to appear.</li>
+      </ol>
+      <h3 class="mt-4 font-semibold">How It Works</h3>
+      <ul class="mt-2 space-y-1 text-sm">
+        <li>• The embed is a self-contained widget — no extra scripts or dependencies needed.</li>
+        <li>• Users can take the quiz directly within the iframe.</li>
+        <li>• Results are calculated server-side and saved automatically.</li>
+        <li>• The widget communicates results back to the parent page via <code>postMessage</code> for custom event handling.</li>
+      </ul>
+      <h3 class="mt-4 font-semibold">Viewing Embed Submissions</h3>
+      <p class="text-sm">As the quiz owner, you can see all embed submissions on the quiz detail page — click <strong>"Embed Submissions"</strong> to view scores, names, and timing.</p>
     </section>
 
     <section id="themes" class="frame overflow-hidden p-6">

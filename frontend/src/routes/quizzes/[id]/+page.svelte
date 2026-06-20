@@ -92,6 +92,52 @@
     return '★'.repeat(score) + '☆'.repeat(5 - score);
   }
 
+  // ── Export ──
+  let exportLoading = $state(false);
+  let exportError = $state('');
+
+  async function handleExport() {
+    exportLoading = true;
+    exportError = '';
+    try {
+      const data = await api.exportQuiz(quiz.id);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${quiz.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e: any) {
+      exportError = e.message;
+    }
+    exportLoading = false;
+  }
+
+  // ── Embed ──
+  let embedSnippet = $state('');
+  let showEmbed = $state(false);
+  let embedCopied = $state(false);
+
+  async function loadEmbedSnippet() {
+    try {
+      const result = await api.getEmbedSnippet(quiz.id);
+      embedSnippet = result.html;
+      showEmbed = true;
+      embedCopied = false;
+    } catch (e: any) {
+      exportError = e.message;
+    }
+  }
+
+  async function copyEmbed() {
+    try {
+      await navigator.clipboard.writeText(embedSnippet);
+      embedCopied = true;
+      setTimeout(() => embedCopied = false, 2000);
+    } catch {}
+  }
+
   onMount(async () => {
     try {
       stats = await api.quizStats(quiz.id);
@@ -132,10 +178,31 @@
     <div class="mt-8 flex justify-end gap-2">
       {#if $isLoggedIn && ($currentUser?.id === quiz.created_by || $currentUser?.role === 'admin')}
         <a href="/quizzes/{quiz.id}/edit" class="btn-pill btn-pill-outline">Edit Quiz</a>
+        <button onclick={handleExport} class="btn-pill btn-pill-outline" disabled={exportLoading}>
+          {exportLoading ? 'Exporting...' : 'Export JSON'}
+        </button>
+        <button onclick={loadEmbedSnippet} class="btn-pill btn-pill-outline">Embed</button>
       {/if}
       <a href="/quizzes/{quiz.id}/take" class="btn-pill btn-pill-primary">Start Quiz</a>
     </div>
+    {#if exportError}
+      <p class="mt-2 text-right text-xs text-[var(--color-error-500)]">{exportError}</p>
+    {/if}
   </div>
+
+  {#if showEmbed}
+    <div class="frame mt-4 p-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-sm">Embed this Quiz</h3>
+        <button class="text-xs opacity-50 hover:opacity-100" onclick={() => showEmbed = false}>Close</button>
+      </div>
+      <p class="mt-1 text-xs opacity-50">Copy this iframe snippet to embed this quiz on any website:</p>
+      <pre class="mt-2 overflow-x-auto rounded-lg bg-[var(--color-surface-100-900)] p-3 text-xs">{embedSnippet}</pre>
+      <button onclick={copyEmbed} class="btn-pill btn-pill-primary btn-pill-sm mt-2">
+        {embedCopied ? 'Copied!' : 'Copy HTML'}
+      </button>
+    </div>
+  {/if}
 
   <!-- Tab bar -->
   <div class="mt-8 flex gap-1 border-b border-[var(--color-surface-300-700)] pb-2">
@@ -177,8 +244,7 @@
         <p class="py-8 text-sm opacity-40">No statistics yet.</p>
       {/if}
     </div>
-  {:else}
-    <!-- Leaderboard -->
+  {:else if tab === 'leaderboard'}
     <div class="mt-6">
       <div class="mb-4 flex gap-1">
         {#each ['all', 'month', 'week', 'today'] as p}

@@ -9,10 +9,11 @@ from app.models import Quiz, Question, User, QuizAttempt, Rating
 from app.schemas import (
     QuizCreate, QuizUpdate, QuizResponse, QuizDetail, QuizWithAnswers,
     QuestionPublic, PaginatedQuizzes, LeaderboardResponse, LeaderboardEntry,
-    RatingStats,
+    RatingStats, QuizExport, QuestionExport, QuizImport, MessageResponse,
 )
 from app.auth import get_current_user, require_admin
 from app.gamification import award_xp, check_and_award_badges
+from app.models import Category
 
 router = APIRouter(prefix="/api/quizzes", tags=["quizzes"])
 
@@ -183,6 +184,92 @@ async def get_quiz_manage(
         category_id=quiz.category_id,
         created_at=quiz.created_at,
         questions=questions,
+    )
+
+
+@router.get("/{quiz_id}/export")
+async def export_quiz(
+    quiz_id: UUID,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    result = await db.execute(select(Quiz).where(Quiz.id == quiz_id))
+    quiz = result.scalar_one_or_none()
+    if not quiz:
+        raise HTTPException(status_code=404, detail="Quiz not found")
+    if quiz.created_by != user.id and user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    q_result = await db.execute(select(Question).where(Question.quiz_id == quiz_id))
+    questions = q_result.scalars().all()
+
+    category_name = None
+    if quiz.category_id:
+        cat_result = await db.execute(select(Category).where(Category.id == quiz.category_id))
+        cat = cat_result.scalar_one_or_none()
+        category_name = cat.name if cat else None
+
+    return QuizExport(
+        title=quiz.title,
+        description=quiz.description,
+        category_name=category_name,
+        questions=[
+            QuestionExport(type=q.type, text=q.text, options=q.options, answer=q.answer)
+            for q in questions
+        ],
+    )
+
+
+@router.post("/import", response_model=QuizResponse, status_code=201)
+async def import_quiz(
+    data: QuizImport,
+    db: AsyncSession = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    category_id = None
+    if data.category_name:
+        cat_result = await db.execute(select(Category).where(Category.name == data.category_name))
+        cat = cat_result.scalar_one_or_none()
+        if cat:
+            category_id = cat.id
+
+    quiz = Quiz(
+        title=data.title,
+        description=data.description,
+        category_id=category_id,
+        created_by=user.id,
+    )
+    db.add(quiz)
+    await db.flush()
+
+    for qi in data.questions:
+        question = Question(
+            quiz_id=quiz.id,
+            type=qi.type,
+            text=qi.text,
+            options=qi.options,
+            answer=qi.answer,
+        )
+        db.add(question)
+
+    await db.commit()
+    await db.refresh(quiz)
+
+    leveled_up = await award_xp(db, user, "quiz_created", 25, quiz_id=quiz.id)
+    badges = await check_and_award_badges(db, user, "quiz_created")
+    if leveled_up:
+        await check_and_award_badges(db, user, "level_up", level=user.level)
+    await db.commit()
+
+    count_result = await db.execute(
+        select(func.count(Question.id)).where(Question.quiz_id == quiz.id)
+    )
+    count = count_result.scalar() or 0
+
+    return QuizResponse(
+        id=quiz.id, title=quiz.title, description=quiz.description,
+        category_id=quiz.category_id,
+        created_by=quiz.created_by, created_at=quiz.created_at, question_count=count,
     )
 
 

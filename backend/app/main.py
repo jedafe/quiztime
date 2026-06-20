@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from app.config import get_settings
 from app.database import get_engine, Base
-from app.routes import auth, quizzes, questions, categories, attempts, share, challenges, ratings, gamification, email
+from app.routes import auth, quizzes, questions, categories, attempts, share, challenges, ratings, gamification, email, embed
 
 settings = get_settings()
 
@@ -36,6 +36,7 @@ app.include_router(challenges.router)
 app.include_router(ratings.router)
 app.include_router(gamification.router)
 app.include_router(email.router)
+app.include_router(embed.router)
 
 
 @app.get("/api/health")

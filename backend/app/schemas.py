@@ -380,3 +380,74 @@ class PasswordResetConfirm(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+# ── Import / Export ──────────────────────────────────────
+class QuestionExport(BaseModel):
+    type: str
+    text: str
+    options: list[str]
+    answer: list[int]
+
+
+class QuestionImport(BaseModel):
+    type: Literal["single", "multiple", "true-false"] = "single"
+    text: str = Field(min_length=1)
+    options: list[str] = Field(min_length=2)
+    answer: list[int] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_answer_indices(self):
+        for idx in self.answer:
+            if idx < 0 or idx >= len(self.options):
+                raise ValueError(f"Answer index {idx} is out of bounds for {len(self.options)} options")
+        if self.type == "true-false" and len(self.options) != 2:
+            raise ValueError("True/false questions must have exactly 2 options")
+        if self.type == "true-false" and set(self.options) != {"True", "False"}:
+            raise ValueError("True/false options must be 'True' and 'False'")
+        return self
+
+
+class QuizExport(BaseModel):
+    title: str
+    description: str
+    category_name: Optional[str] = None
+    questions: list[QuestionExport]
+
+
+class QuizImport(BaseModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str = ""
+    category_name: Optional[str] = None
+    questions: list[QuestionImport]
+
+
+# ── Embed ─────────────────────────────────────────────────
+class EmbedQuestion(BaseModel):
+    id: UUID
+    type: str
+    text: str
+    options: list[str]
+
+
+class EmbedQuizData(BaseModel):
+    id: UUID
+    title: str
+    description: str
+    questions: list[EmbedQuestion]
+
+
+class EmbedSubmit(BaseModel):
+    answers: dict[str, list[int]] = {}
+    time_spent: int = Field(default=0, ge=0)
+    name: str = ""
+
+
+class EmbedResult(BaseModel):
+    score: int
+    total: int
+    percentage: float
+    grade: str
+    time_spent: int
+    answers: dict
+    submission_id: UUID
