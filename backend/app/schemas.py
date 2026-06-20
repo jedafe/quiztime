@@ -47,9 +47,19 @@ class CategoryResponse(BaseModel):
         from_attributes = True
 
 
+# ── Subcategory ───────────────────────────────────────
+class SubcategoryResponse(BaseModel):
+    id: UUID
+    name: str
+    category_id: UUID
+
+    class Config:
+        from_attributes = True
+
+
 # ── Question ──────────────────────────────────────────
 class QuestionCreate(BaseModel):
-    category_id: Optional[UUID] = None
+    subcategory_id: Optional[UUID] = None
     type: Literal["single", "multiple", "true-false"] = "single"
     text: str = Field(min_length=1)
     options: list[str] = Field(min_length=2)
@@ -68,7 +78,7 @@ class QuestionCreate(BaseModel):
 
 
 class QuestionUpdate(BaseModel):
-    category_id: Optional[UUID] = None
+    subcategory_id: Optional[UUID] = None
     type: Optional[Literal["single", "multiple", "true-false"]] = None
     text: Optional[str] = None
     options: Optional[list[str]] = None
@@ -78,7 +88,7 @@ class QuestionUpdate(BaseModel):
 class QuestionResponse(BaseModel):
     id: UUID
     quiz_id: UUID
-    category_id: Optional[UUID]
+    subcategory_id: Optional[UUID]
     type: str
     text: str
     options: list[str]
@@ -103,11 +113,13 @@ class QuestionPublic(BaseModel):
 class QuizCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str = ""
+    category_id: Optional[UUID] = None
 
 
 class QuizUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
+    category_id: Optional[UUID] = None
 
 
 class QuizResponse(BaseModel):
@@ -115,6 +127,7 @@ class QuizResponse(BaseModel):
     title: str
     description: str
     created_by: UUID
+    category_id: Optional[UUID] = None
     created_at: datetime
     question_count: int = 0
     attempt_count: int = 0
@@ -129,6 +142,7 @@ class QuizDetail(BaseModel):
     title: str
     description: str
     created_by: UUID
+    category_id: Optional[UUID] = None
     created_at: datetime
     questions: list[QuestionPublic] = []
     attempt_count: int = 0
@@ -144,6 +158,7 @@ class QuizWithAnswers(BaseModel):
     title: str
     description: str
     created_by: UUID
+    category_id: Optional[UUID] = None
     created_at: datetime
     questions: list[QuestionResponse] = []
 

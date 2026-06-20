@@ -9,19 +9,22 @@
   const backendCode = `backend/
 ├── app/
 │   ├── main.py          # FastAPI app, lifespan, CORS, router mounts
-│   ├── config.py         # pydantic-settings (env vars)
-│   ├── database.py       # Engine, session factory, Base
-│   ├── models.py         # SQLAlchemy models
-│   ├── schemas.py        # Pydantic request/response schemas
-│   ├── auth.py           # JWT creation, password hashing (bcrypt)
+│   ├── config.py        # pydantic-settings (env vars)
+│   ├── database.py      # Engine, session factory, Base
+│   ├── models.py        # SQLAlchemy models
+│   ├── schemas.py       # Pydantic request/response schemas
+│   ├── auth.py          # JWT creation, password hashing (bcrypt)
 │   └── routes/
 │       ├── auth.py       # POST /register, /login, GET /me
 │       ├── quizzes.py    # CRUD + /manage, /take (paginated)
 │       ├── questions.py  # CRUD per quiz
-│       ├── categories.py # CRUD
+│       ├── categories.py # CRUD + subcategories
 │       ├── attempts.py   # Submit, mine, stats, get by id
 │       ├── share.py      # Share links + OG cards
-│       └── challenges.py # Challenge system
+│       ├── challenges.py # Challenge system
+│       ├── ratings.py    # 5-star ratings + reviews
+│       ├── gamification.py # XP, levels, badges, leaderboard
+│       └── email.py      # Email verify, forgot/reset password
 ├── tests/
 │   ├── conftest.py       # Fixtures: test client, SQLite override
 │   ├── test_auth.py
@@ -29,9 +32,11 @@
 │   ├── test_questions.py
 │   ├── test_categories.py
 │   ├── test_attempts.py
-│   └── test_share_challenge.py
-├── alembic/              # DB migrations
-├── seed.py               # Demo data seeder
+│   ├── test_share_challenge.py
+│   ├── test_gamification.py
+│   ├── test_search_ratings.py
+│   └── test_questions.py
+├── seed.py               # Demo data seeder (categories + subcategories + quiz + questions)
 └── requirements.txt`;
 
   const frontendCode = `frontend/
@@ -48,16 +53,20 @@
 │       ├── +error.svelte   # Error boundary
 │       ├── login/, register/
 │       ├── quizzes/
-│       │   ├── +page.svelte         # Browse (paginated)
+│       │   ├── +page.svelte          # Browse (paginated, filter/sort)
 │       │   └── [id]/
-│       │       ├── +page.svelte     # Detail
-│       │       ├── take/            # Player
-│       │       ├── results/         # Score + share + challenge
-│       │       └── edit/            # Manage
-│       │   └── challenge/[code]/    # Challenge landing + accept
-│       ├── dashboard/
-│       ├── create/
-│       └── docs/
+│       │       ├── +page.svelte      # Detail
+│       │       ├── take/             # Player
+│       │       ├── results/          # Score + share + challenge
+│       │       └── edit/             # Manage (category + subcategory dropdowns)
+│       │   └── challenge/[code]/     # Challenge landing + accept
+│       ├── dashboard/                # User's quizzes + attempt history + XP card
+│       ├── create/                   # Create quiz (category dropdown)
+│       ├── achievements/             # Badges gallery + XP history + level progress
+│       ├── verify-email/             # Email verification (?token=)
+│       ├── forgot-password/          # Request password reset
+│       ├── reset-password/           # Reset password (?token=)
+│       └── docs/                     # Documentation hub
 ├── package.json
 ├── vite.config.ts         # @tailwindcss/vite plugin`;
 
@@ -274,13 +283,19 @@ docs: add developer guide`;
           <table class="table w-full min-w-[400px] text-sm">
             <thead><tr><th>Table</th><th>Key Columns</th><th>Notes</th></tr></thead>
             <tbody>
-              <tr><td><code>users</code></td><td>id, username, email, hashed_password, role</td><td>role: admin | user</td></tr>
-              <tr><td><code>quizzes</code></td><td>id, title, description, created_by FK</td><td>Index on created_by</td></tr>
-              <tr><td><code>questions</code></td><td>id, quiz_id FK, category_id FK, type, text, options, answer</td><td>JSON columns, FK indexes</td></tr>
+              <tr><td><code>users</code></td><td>id, username, email, hashed_password, role, xp, level, streak_count, last_activity_date, email_verified</td><td>role: admin | user</td></tr>
+              <tr><td><code>quizzes</code></td><td>id, title, description, category_id FK, created_by FK</td><td>Index on created_by</td></tr>
+              <tr><td><code>questions</code></td><td>id, quiz_id FK, subcategory_id FK, type, text, options, answer</td><td>JSON columns, FK indexes</td></tr>
               <tr><td><code>categories</code></td><td>id, name</td><td>Unique name</td></tr>
+              <tr><td><code>subcategories</code></td><td>id, name, category_id FK</td><td>FK to categories</td></tr>
               <tr><td><code>quiz_attempts</code></td><td>id, quiz_id FK, user_id FK, answers, score, total, time_spent</td><td>FK indexes, leaderboard index (quiz_id, score desc, time_spent asc, created_at)</td></tr>
               <tr><td><code>share_links</code></td><td>id, quiz_id FK, attempt_id FK, code (unique)</td><td>Unique code index</td></tr>
               <tr><td><code>challenges</code></td><td>id, quiz_id FK, challenger_id FK, challenge_code (unique), score_to_beat, status, expires_at, challenger_attempt_id, challengee_attempt_id</td><td>Auto-expires after 7 days</td></tr>
+              <tr><td><code>ratings</code></td><td>id, quiz_id FK, user_id FK, score, review, created_at</td><td>Unique per user+quiz</td></tr>
+              <tr><td><code>badge_definitions</code></td><td>id, key, name, description, icon, criteria</td><td>6 seeded badges</td></tr>
+              <tr><td><code>user_badges</code></td><td>user_id FK, badge_id FK, earned_at</td><td>PK: (user_id, badge_id)</td></tr>
+              <tr><td><code>xp_events</code></td><td>id, user_id FK, source, amount, created_at</td><td>Audit log for XP changes</td></tr>
+              <tr><td><code>email_tokens</code></td><td>id, user_id FK, token, type (verify|reset), expires_at, used</td><td>Used on verify/reset</td></tr>
             </tbody>
           </table>
         </div>
@@ -298,17 +313,20 @@ docs: add developer guide`;
               <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/auth/register</td><td>No</td><td>Create account</td></tr>
               <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/auth/login</td><td>No</td><td>Get JWT token</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/auth/me</td><td>Yes</td><td>Current user</td></tr>
-              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes</td><td>No</td><td>List quizzes (paginated: items, total, page, page_size, total_pages)</td></tr>
-              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/quizzes</td><td>Yes</td><td>Create quiz</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes</td><td>No</td><td>List quizzes (paginated, filter/sort: ?category_id=&q=&sort_by=)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/quizzes</td><td>Yes</td><td>Create quiz (accepts category_id)</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}</td><td>No</td><td>Quiz detail (answers hidden)</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/manage</td><td>Owner</td><td>Quiz with answers</td></tr>
-              <tr><td><span class="badge variant-filled-warning">PUT</span></td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Update quiz</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/take</td><td>Yes</td><td>Quiz with questions for taking</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/leaderboard</td><td>Yes</td><td>Per-quiz leaderboard (?period=today|week|month|all)</td></tr>
+              <tr><td><span class="badge variant-filled-warning">PUT</span></td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Update quiz (accepts category_id)</td></tr>
               <tr><td><span class="badge variant-filled-error">DELETE</span></td><td>/api/quizzes/{'{id}'}</td><td>Owner</td><td>Delete quiz</td></tr>
-              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/questions/{'{quizId}'}</td><td>Owner</td><td>Add question</td></tr>
-              <tr><td><span class="badge variant-filled-warning">PUT</span></td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Update question</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/questions/{'{quizId}'}</td><td>Owner</td><td>Add question (accepts subcategory_id)</td></tr>
+              <tr><td><span class="badge variant-filled-warning">PUT</span></td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Update question (accepts subcategory_id)</td></tr>
               <tr><td><span class="badge variant-filled-error">DELETE</span></td><td>/api/questions/{'{id}'}</td><td>Owner</td><td>Delete question</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/categories</td><td>No</td><td>List categories</td></tr>
               <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/categories</td><td>Admin</td><td>Create category</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/categories/subcategories</td><td>No</td><td>List subcategories (?category_id=)</td></tr>
               <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/attempts</td><td>Yes</td><td>Submit attempt (server-side scoring, optional challenge_code)</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/mine</td><td>Yes</td><td>User's attempts</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/attempts/{'{id}'}</td><td>Yes</td><td>Get attempt by ID</td></tr>
@@ -319,9 +337,22 @@ docs: add developer guide`;
               <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/challenges</td><td>Yes</td><td>Create challenge (score-to-beat)</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges</td><td>Yes</td><td>List my created challenges</td></tr>
               <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges/{'{code}'}</td><td>No</td><td>Get challenge details</td></tr>
-              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/challenges/{'{code}'}/accept</td><td>Yes</td><td>Accept challenge (status → accepted)</td></tr>
-              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges/{'{code}'}/result</td><td>No</td><td>Challenge comparison (challenger vs challengee)</td></tr>
-              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/quizzes/{'{id}'}/leaderboard</td><td>Yes</td><td>Per-quiz leaderboard (?period=today|week|month|all, ?limit=N)</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/challenges/{'{code}'}/accept</td><td>Yes</td><td>Accept challenge</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/challenges/{'{code}'}/result</td><td>No</td><td>Challenge comparison page</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/ratings</td><td>Yes</td><td>Rate a quiz (score 1-5, optional review)</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/ratings/{'{quizId}'}</td><td>No</td><td>List ratings for a quiz</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/ratings/{'{quizId}'}/stats</td><td>No</td><td>Average rating + count</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/ratings/{'{quizId}'}/my</td><td>Yes</td><td>Current user's rating</td></tr>
+              <tr><td><span class="badge variant-filled-error">DELETE</span></td><td>/api/ratings/{'{ratingId}'}</td><td>Owner</td><td>Delete rating</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/email/verify</td><td>No</td><td>Verify email with token</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/email/resend-verification</td><td>Yes</td><td>Resend verification email</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/email/forgot-password</td><td>No</td><td>Request password reset</td></tr>
+              <tr><td><span class="badge variant-filled-success">POST</span></td><td>/api/email/reset-password</td><td>No</td><td>Reset password with token</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/my-profile</td><td>Yes</td><td>Current user's XP/profile/streak/badges</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/profile/{'{id}'}</td><td>No</td><td>Any user's public gamification profile</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/xp-history</td><td>Yes</td><td>Paginated XP event history</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/badges</td><td>No</td><td>All badges with earned status</td></tr>
+              <tr><td><span class="badge variant-filled-secondary">GET</span></td><td>/api/gamification/leaderboard</td><td>No</td><td>XP leaderboard (top users)</td></tr>
             </tbody>
           </table>
         </div>
@@ -404,7 +435,7 @@ docs: add developer guide`;
         <pre class="code mt-2 p-4"><code>{testCode}</code></pre>
         <ul class="mt-2 space-y-1 text-sm">
           <li>• Uses <code>aiosqlite</code> — no PostgreSQL needed for tests.</li>
-          <li>• Fixtures: <code>client</code>, <code>auth_headers</code>, <code>admin_headers</code>, <code>created_quiz</code>.</li>
+          <li>• Fixtures: <code>client</code>, <code>auth_headers</code>, <code>admin_headers</code>, <code>created_quiz</code>, <code>category</code>, <code>subcategory</code>, <code>registered_user</code>.</li>
           <li>• Database uses lazy init: call <code>get_engine()</code> / <code>get_session_factory()</code> before use.</li>
         </ul>
         <h3 class="mt-4 font-semibold">Frontend (vitest)</h3>

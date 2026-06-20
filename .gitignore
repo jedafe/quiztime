@@ -38,6 +38,7 @@ npm-debug.log*
 coverage/
 .nyc_output/
 test.db
+test_*.db
 
 # Docker
 docker-compose.override.yml

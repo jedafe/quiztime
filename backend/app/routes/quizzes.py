@@ -33,9 +33,8 @@ async def list_quizzes(
     q = select(Quiz, func.count(Question.id).label("question_count"))
 
     if category_id:
-        q = q.join(Question).where(Question.category_id == category_id)
-    else:
-        q = q.outerjoin(Question)
+        q = q.where(Quiz.category_id == category_id)
+    q = q.outerjoin(Question)
 
     if search:
         pattern = f"%{search}%"
@@ -83,6 +82,7 @@ async def list_quizzes(
             title=quiz.title,
             description=quiz.description,
             created_by=quiz.created_by,
+            category_id=quiz.category_id,
             created_at=quiz.created_at,
             question_count=qcount,
             attempt_count=acount or 0,
@@ -105,7 +105,7 @@ async def create_quiz(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    quiz = Quiz(title=data.title, description=data.description, created_by=user.id)
+    quiz = Quiz(title=data.title, description=data.description, category_id=data.category_id, created_by=user.id)
     db.add(quiz)
     await db.commit()
     await db.refresh(quiz)
@@ -118,6 +118,7 @@ async def create_quiz(
 
     return QuizResponse(
         id=quiz.id, title=quiz.title, description=quiz.description,
+        category_id=quiz.category_id,
         created_by=quiz.created_by, created_at=quiz.created_at, question_count=0,
     )
 
@@ -147,6 +148,7 @@ async def get_quiz(quiz_id: UUID, db: AsyncSession = Depends(get_db)):
         title=quiz.title,
         description=quiz.description,
         created_by=quiz.created_by,
+        category_id=quiz.category_id,
         created_at=quiz.created_at,
         attempt_count=attempt_count,
         avg_rating=avg_rating,
@@ -178,6 +180,7 @@ async def get_quiz_manage(
         title=quiz.title,
         description=quiz.description,
         created_by=quiz.created_by,
+        category_id=quiz.category_id,
         created_at=quiz.created_at,
         questions=questions,
     )
@@ -202,6 +205,7 @@ async def get_quiz_for_taking(
         title=quiz.title,
         description=quiz.description,
         created_by=quiz.created_by,
+        category_id=quiz.category_id,
         created_at=quiz.created_at,
         questions=questions,
     )
@@ -225,6 +229,10 @@ async def update_quiz(
         quiz.title = data.title
     if data.description is not None:
         quiz.description = data.description
+    if data.category_id is not None:
+        quiz.category_id = data.category_id
+    elif "category_id" in data.model_dump(exclude_unset=True):
+        quiz.category_id = None
 
     await db.commit()
     await db.refresh(quiz)
@@ -236,7 +244,8 @@ async def update_quiz(
 
     return QuizResponse(
         id=quiz.id, title=quiz.title, description=quiz.description,
-        created_by=quiz.created_by, created_at=quiz.created_at, question_count=count,
+        created_by=quiz.created_by, category_id=quiz.category_id,
+        created_at=quiz.created_at, question_count=count,
     )
 
 

@@ -50,7 +50,18 @@ class Category(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name = Column(String(100), unique=True, nullable=False)
 
-    questions = relationship("Question", back_populates="category")
+    subcategories = relationship("Subcategory", back_populates="category", cascade="all, delete-orphan")
+
+
+class Subcategory(Base):
+    __tablename__ = "subcategories"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String(100), nullable=False)
+    category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=False)
+
+    category = relationship("Category", back_populates="subcategories")
+    questions = relationship("Question", back_populates="subcategory")
 
 
 class Quiz(Base):
@@ -63,9 +74,11 @@ class Quiz(Base):
     title = Column(String(255), nullable=False)
     description = Column(Text, default="")
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True)
     created_at = Column(DateTime, default=utcnow)
 
     owner = relationship("User", back_populates="quizzes")
+    category = relationship("Category")
     questions = relationship("Question", back_populates="quiz", cascade="all, delete-orphan")
     attempts = relationship("QuizAttempt", back_populates="quiz", cascade="all, delete-orphan")
     ratings = relationship("Rating", back_populates="quiz", cascade="all, delete-orphan")
@@ -75,19 +88,19 @@ class Question(Base):
     __tablename__ = "questions"
     __table_args__ = (
         Index("ix_questions_quiz_id", "quiz_id"),
-        Index("ix_questions_category_id", "category_id"),
+        Index("ix_questions_subcategory_id", "subcategory_id"),
     )
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=False)
-    category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True)
+    subcategory_id = Column(UUID(as_uuid=True), ForeignKey("subcategories.id"), nullable=True)
     type = Column(String(20), nullable=False, default=QuestionType.single)
     text = Column(Text, nullable=False)
     options = Column(JSON, nullable=False)
     answer = Column(JSON, nullable=False)
 
     quiz = relationship("Quiz", back_populates="questions")
-    category = relationship("Category", back_populates="questions")
+    subcategory = relationship("Subcategory", back_populates="questions")
 
 
 class QuizAttempt(Base):

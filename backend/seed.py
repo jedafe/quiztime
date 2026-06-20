@@ -2,7 +2,7 @@ import asyncio
 import uuid
 from sqlalchemy import select
 from app.database import get_session_factory, get_engine, Base
-from app.models import User, Category, Quiz, Question, BadgeDefinition
+from app.models import User, Category, Subcategory, Quiz, Question, BadgeDefinition
 from app.auth import hash_password
 
 
@@ -10,6 +10,15 @@ SEED_CATEGORIES = [
     "Database", "Programming", "Web Development",
     "Networking", "General Knowledge", "Mathematics",
 ]
+
+SEED_SUBCATEGORIES = {
+    "Database": ["SQL", "NoSQL", "ORM", "Schema Design", "Query Optimization"],
+    "Programming": ["Python", "JavaScript", "TypeScript", "Go", "Rust"],
+    "Web Development": ["HTML/CSS", "React", "Svelte", "Backend", "APIs"],
+    "Networking": ["TCP/IP", "DNS", "HTTP", "Security", "Protocols"],
+    "General Knowledge": ["Science", "History", "Geography", "Arts", "Sports"],
+    "Mathematics": ["Algebra", "Calculus", "Statistics", "Geometry", "Logic"],
+}
 
 SEED_USERS = [
     {"username": "admin", "email": "admin@quiztime.com", "password": "admin123", "role": "admin"},
@@ -131,10 +140,19 @@ async def seed():
 
         # Seed categories
         cats = {}
+        subcats = {}
         for name in SEED_CATEGORIES:
             cat = Category(id=uuid.uuid4(), name=name)
             db.add(cat)
             cats[name] = cat
+        await db.flush()
+
+        # Seed subcategories
+        for cat_name, sub_names in SEED_SUBCATEGORIES.items():
+            for sname in sub_names:
+                sc = Subcategory(id=uuid.uuid4(), name=sname, category_id=cats[cat_name].id)
+                db.add(sc)
+                subcats[sname] = sc
         await db.flush()
 
         # Seed badges
@@ -152,21 +170,27 @@ async def seed():
                 db.add(BadgeDefinition(**b))
 
         # Seed quiz
+        gk_cat = cats["General Knowledge"]
         quiz = Quiz(
             id=uuid.uuid4(),
             title="General Knowledge Quiz",
             description="Test your general knowledge with these questions!",
+            category_id=gk_cat.id,
             created_by=users["admin"].id,
         )
         db.add(quiz)
         await db.flush()
 
-        # Seed questions
+        # Seed questions — assign first subcategory of the matching category
         for q in SEED_QUESTIONS:
+            cat_name = q.get("category", "General Knowledge")
+            cat = cats[cat_name]
+            # pick the first subcategory for this category
+            first_sub = next((sc for name, sc in subcats.items() if sc.category_id == cat.id), None)
             question = Question(
                 id=uuid.uuid4(),
                 quiz_id=quiz.id,
-                category_id=cats.get(q["category"], cats["General Knowledge"]).id,
+                subcategory_id=first_sub.id if first_sub else None,
                 type=q["type"],
                 text=q["question"],
                 options=q["options"],

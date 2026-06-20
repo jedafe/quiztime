@@ -6,6 +6,7 @@
 
   let title = $state('');
   let description = $state('');
+  let categoryId = $state('');
   let categories: any[] = $state([]);
   let error = $state('');
   let loading = $state(false);
@@ -35,7 +36,10 @@
     loading = true;
     error = '';
     try {
-      const quiz = await api.createQuiz({ title, description });
+      const quiz = await api.createQuiz({
+        title, description,
+        category_id: categoryId || null,
+      });
       goto(`/quizzes/${quiz.id}/edit`);
     } catch (e: any) {
       error = e.message || 'Failed to create quiz';
@@ -52,7 +56,7 @@
 <div class="page-enter mx-auto max-w-xl">
   <p class="eyebrow">Creation</p>
   <h1 class="text-3xl font-bold tracking-[-0.03em]">Create New Quiz</h1>
-  <p class="mt-1 text-sm opacity-50">Give it a title and optional description</p>
+  <p class="mt-1 text-sm opacity-50">Give it a title, category, and optional description</p>
 
   {#if error}
     <div class="mt-4 rounded-xl bg-[var(--color-error-500)]/12 px-4 py-3 text-sm text-[var(--color-error-500)]">
@@ -65,6 +69,16 @@
       <div>
         <label class="mb-1.5 block text-sm font-medium">Quiz Title *</label>
         <input type="text" bind:value={title} class="input-pill" placeholder="e.g. JavaScript Fundamentals" required />
+      </div>
+
+      <div>
+        <label class="mb-1.5 block text-sm font-medium">Category</label>
+        <select bind:value={categoryId} class="input-pill">
+          <option value="">None</option>
+          {#each categories as cat}
+            <option value={cat.id}>{cat.name}</option>
+          {/each}
+        </select>
       </div>
 
       <div>

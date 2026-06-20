@@ -26,22 +26,22 @@ async def seed_badges():
         await session.commit()
 
 
-def _make_question(quiz_id, category_id):
+def _make_question(quiz_id, subcategory_id):
     from app.models import Question
     return Question(
-        quiz_id=quiz_id, category_id=category_id,
+        quiz_id=quiz_id, subcategory_id=subcategory_id,
         type="single", text="Test?",
         options=["A", "B"], answer=[0],
     )
 
 
 class TestXpEarning:
-    async def test_xp_on_quiz_complete(self, client: AsyncClient, auth_headers, category):
+    async def test_xp_on_quiz_complete(self, client: AsyncClient, auth_headers, subcategory):
         # Create quiz + question
         q_res = await client.post("/api/quizzes", json={"title": "XP Test", "description": ""}, headers=auth_headers)
         quiz = q_res.json()
         await client.post(f"/api/questions/{quiz['id']}", json={
-            "category_id": category["id"], "type": "single", "text": "Q?",
+            "subcategory_id": subcategory["id"], "type": "single", "text": "Q?",
             "options": ["A", "B"], "answer": [0],
         }, headers=auth_headers)
 
@@ -54,11 +54,11 @@ class TestXpEarning:
         assert prof.json()["xp"] >= 10
         assert prof.json()["level"] >= 1
 
-    async def test_perfect_score_bonus_xp(self, client: AsyncClient, auth_headers, category):
+    async def test_perfect_score_bonus_xp(self, client: AsyncClient, auth_headers, subcategory):
         q_res = await client.post("/api/quizzes", json={"title": "Perfect Test", "description": ""}, headers=auth_headers)
         quiz = q_res.json()
         await client.post(f"/api/questions/{quiz['id']}", json={
-            "category_id": category["id"], "type": "single", "text": "Q?",
+            "subcategory_id": subcategory["id"], "type": "single", "text": "Q?",
             "options": ["A", "B"], "answer": [0],
         }, headers=auth_headers)
 
@@ -73,10 +73,10 @@ class TestXpEarning:
         prof = await client.get("/api/gamification/my-profile", headers=auth_headers)
         assert prof.json()["xp"] >= 60
 
-    async def test_xp_history(self, client: AsyncClient, auth_headers, created_quiz, category):
+    async def test_xp_history(self, client: AsyncClient, auth_headers, created_quiz, subcategory):
         # Add a question so XP > 0
         await client.post(f"/api/questions/{created_quiz['id']}", json={
-            "category_id": category["id"], "type": "single", "text": "Q?",
+            "subcategory_id": subcategory["id"], "type": "single", "text": "Q?",
             "options": ["A", "B"], "answer": [0],
         }, headers=auth_headers)
 
@@ -100,10 +100,10 @@ class TestXpEarning:
         prof_after = await client.get("/api/gamification/my-profile", headers=auth_headers)
         assert prof_after.json()["xp"] == xp_before + 25
 
-    async def test_level_up(self, client: AsyncClient, auth_headers, created_quiz, category):
+    async def test_level_up(self, client: AsyncClient, auth_headers, created_quiz, subcategory):
         # Add a question so each attempt gives 10 XP
         await client.post(f"/api/questions/{created_quiz['id']}", json={
-            "category_id": category["id"], "type": "single", "text": "Q?",
+            "subcategory_id": subcategory["id"], "type": "single", "text": "Q?",
             "options": ["A", "B"], "answer": [0],
         }, headers=auth_headers)
         # Complete many quizzes to earn XP
@@ -118,7 +118,7 @@ class TestXpEarning:
 
 
 class TestBadges:
-    async def test_first_quiz_badge(self, client: AsyncClient, auth_headers, created_quiz, category):
+    async def test_first_quiz_badge(self, client: AsyncClient, auth_headers, created_quiz):
         await client.post("/api/attempts", json={
             "quiz_id": created_quiz["id"], "answers": {}, "time_spent": 10,
         }, headers=auth_headers)
@@ -127,11 +127,11 @@ class TestBadges:
         badge_keys = [b["key"] for b in prof.json()["badges"] if b["earned_at"]]
         assert "first_quiz" in badge_keys
 
-    async def test_perfect_score_badge(self, client: AsyncClient, auth_headers, category):
+    async def test_perfect_score_badge(self, client: AsyncClient, auth_headers, subcategory):
         q_res = await client.post("/api/quizzes", json={"title": "Badge Test", "description": ""}, headers=auth_headers)
         quiz = q_res.json()
         await client.post(f"/api/questions/{quiz['id']}", json={
-            "category_id": category["id"], "type": "single", "text": "Q?",
+            "subcategory_id": subcategory["id"], "type": "single", "text": "Q?",
             "options": ["A", "B"], "answer": [0],
         }, headers=auth_headers)
 
@@ -163,7 +163,7 @@ class TestBadges:
         assert "first_quiz" in keys
         assert "centurion" in keys
 
-    async def test_badge_not_duplicated(self, client: AsyncClient, auth_headers, created_quiz, category):
+    async def test_badge_not_duplicated(self, client: AsyncClient, auth_headers, created_quiz):
         for i in range(3):
             await client.post("/api/attempts", json={
                 "quiz_id": created_quiz["id"], "answers": {}, "time_spent": 10,

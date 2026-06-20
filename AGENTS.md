@@ -114,6 +114,7 @@ All endpoints prefixed with `/api/`:
 | `DELETE /questions/{id}` | Yes (owner) | Delete question |
 | `GET /categories` | No | List categories |
 | `POST /categories` | Admin | Create category |
+| `GET /categories/subcategories` | No | List subcategories (?category_id=) |
 | `POST /attempts` | Yes | Submit quiz attempt |
 | `GET /attempts/mine` | Yes | User's attempt history |
 | `GET /attempts/quiz/{id}/stats` | No | Quiz statistics |
@@ -130,9 +131,10 @@ All endpoints prefixed with `/api/`:
 ## Data Model
 
 - **User**: id, username, email, hashed_password, role (`admin`|`user`), xp, level, streak_count, last_activity_date, email_verified
-- **Quiz**: id, title, description, created_by FK
-- **Question**: id, quiz_id FK, category_id FK, type, text, options (JSON), answer (JSON)
+- **Quiz**: id, title, description, category_id FK, created_by FK
+- **Question**: id, quiz_id FK, subcategory_id FK, type, text, options (JSON), answer (JSON)
 - **Category**: id, name
+- **Subcategory**: id, name, category_id FK
 - **QuizAttempt**: id, quiz_id FK, user_id FK, answers (JSON), score, total, time_spent
 - **BadgeDefinition**: id, name, description, icon, criteria (JSON)
 - **UserBadge**: user_id FK, badge_id FK, earned_at

@@ -19,7 +19,9 @@
 
   let title = $state(quiz.title);
   let description = $state(quiz.description || '');
+  let categoryId = $state(quiz.category_id || '');
   let categories: any[] = $state([]);
+  let subcategories: any[] = $state([]);
   let questions: ManagedQuestion[] = $state([]);
   let loading = $state(true);
   let saving = $state(false);
@@ -32,10 +34,19 @@
   let newQuestion = $state({
     text: '',
     type: 'single',
-    category_id: '',
+    subcategory_id: '',
     options: ['', '', '', ''],
     answer: [] as number[],
   });
+
+  async function loadSubcategories(catId: string) {
+    if (!catId) { subcategories = []; return; }
+    try {
+      subcategories = await api.listSubcategories(catId);
+    } catch {
+      subcategories = [];
+    }
+  }
 
   onMount(async () => {
     if (!$isLoggedIn) {
@@ -55,8 +66,10 @@
       quiz = managedQuiz;
       title = quiz.title;
       description = quiz.description || '';
+      categoryId = quiz.category_id || '';
       questions = quiz.questions || [];
       categories = cats;
+      if (categoryId) await loadSubcategories(categoryId);
     } catch (e: any) {
       error = e.message;
     } finally {
@@ -68,7 +81,13 @@
     saving = true;
     error = '';
     try {
-      await api.updateQuiz(quiz.id, { title, description });
+      const updated = await api.updateQuiz(quiz.id, {
+        title, description,
+        category_id: categoryId || null,
+      });
+      categoryId = updated.category_id || '';
+      if (categoryId) await loadSubcategories(categoryId);
+      else subcategories = [];
       toast = 'Quiz saved!';
       setTimeout(() => (toast = ''), 3000);
     } catch (e: any) {
@@ -101,12 +120,12 @@
       const q = await api.createQuestion(quiz.id, {
         text: newQuestion.text,
         type: newQuestion.type,
-        category_id: newQuestion.category_id || null,
+        subcategory_id: newQuestion.subcategory_id || null,
         options: validOptions,
         answer: newQuestion.answer.map((i) => Math.min(i, validOptions.length - 1)),
       });
       questions = [...questions, q];
-      newQuestion = { text: '', type: 'single', category_id: '', options: ['', '', '', ''], answer: [] };
+      newQuestion = { text: '', type: 'single', subcategory_id: '', options: ['', '', '', ''], answer: [] };
     } catch (e: any) {
       error = e.message;
     } finally {
@@ -199,6 +218,15 @@
           <input type="text" bind:value={title} class="input-pill" />
         </div>
         <div>
+          <label class="mb-1.5 block text-sm font-medium">Category</label>
+          <select bind:value={categoryId} class="input-pill">
+            <option value="">None</option>
+            {#each categories as cat}
+              <option value={cat.id}>{cat.name}</option>
+            {/each}
+          </select>
+        </div>
+        <div>
           <label class="mb-1.5 block text-sm font-medium">Description</label>
           <textarea bind:value={description} class="input-pill h-20 resize-none"></textarea>
         </div>
@@ -263,13 +291,17 @@
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium">Category</label>
-            <select bind:value={newQuestion.category_id} class="input-pill">
-              <option value="">None</option>
-              {#each categories as cat}
-                <option value={cat.id}>{cat.name}</option>
-              {/each}
-            </select>
+            <label class="mb-1.5 block text-sm font-medium">Subcategory</label>
+            {#if !categoryId}
+              <p class="text-xs opacity-40 mt-1">Set a category for this quiz first to choose a subcategory</p>
+            {:else}
+              <select bind:value={newQuestion.subcategory_id} class="input-pill">
+                <option value="">None</option>
+                {#each subcategories as sub}
+                  <option value={sub.id}>{sub.name}</option>
+                {/each}
+              </select>
+            {/if}
           </div>
         </div>
 

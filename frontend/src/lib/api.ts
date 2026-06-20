@@ -72,10 +72,10 @@ function buildApi(fetchFn: FetchFn) {
 
     getQuiz: (id: string) => request<any>(fetchFn, `/quizzes/${id}`),
 
-    createQuiz: (data: { title: string; description?: string }) =>
+    createQuiz: (data: { title: string; description?: string; category_id?: string | null }) =>
       request<any>(fetchFn, '/quizzes', { method: 'POST', body: JSON.stringify(data) }),
 
-    updateQuiz: (id: string, data: { title?: string; description?: string }) =>
+    updateQuiz: (id: string, data: { title?: string; description?: string; category_id?: string | null }) =>
       request<any>(fetchFn, `/quizzes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
     deleteQuiz: (id: string) =>
@@ -95,6 +95,8 @@ function buildApi(fetchFn: FetchFn) {
       request<void>(fetchFn, `/questions/${id}`, { method: 'DELETE' }),
 
     listCategories: () => request<any[]>(fetchFn, '/categories'),
+    listSubcategories: (categoryId: string) =>
+      request<any[]>(fetchFn, `/categories/subcategories?category_id=${categoryId}`),
 
     createCategory: (data: { name: string }) =>
       request<any>(fetchFn, '/categories', { method: 'POST', body: JSON.stringify(data) }),

@@ -9,7 +9,7 @@ from app.auth import get_current_user
 
 router = APIRouter(prefix="/api/questions", tags=["questions"])
 
-QUESTION_UPDATE_FIELDS = {"category_id", "type", "text", "options", "answer"}
+QUESTION_UPDATE_FIELDS = {"subcategory_id", "type", "text", "options", "answer"}
 
 
 @router.post("/{quiz_id}", response_model=QuestionResponse, status_code=201)
@@ -28,7 +28,7 @@ async def create_question(
 
     question = Question(
         quiz_id=quiz_id,
-        category_id=data.category_id,
+        subcategory_id=data.subcategory_id,
         type=data.type,
         text=data.text,
         options=data.options,

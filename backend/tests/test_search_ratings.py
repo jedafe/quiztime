@@ -141,21 +141,19 @@ class TestSearchFiltering:
         data = resp.json()
         assert data["total"] == 2
 
-    async def test_filter_by_category(self, client, created_quiz, auth_headers, admin_headers, created_category):
-        # Add a question with the category
+    async def test_filter_by_category(self, client, auth_headers, admin_headers, created_category):
+        # Create a quiz with the category
         cat_id = created_category["id"]
-        await client.post(f"/api/questions/{created_quiz['id']}", json={
+        await client.post("/api/quizzes", json={
+            "title": "Cat Quiz",
+            "description": "A categorized quiz",
             "category_id": cat_id,
-            "type": "single",
-            "text": "Test question with category?",
-            "options": ["A", "B", "C", "D"],
-            "answer": [0],
         }, headers=auth_headers)
 
         resp = await client.get(f"/api/quizzes?category_id={cat_id}")
         data = resp.json()
         assert data["total"] == 1
-        assert data["items"][0]["id"] == created_quiz["id"]
+        assert data["items"][0]["title"] == "Cat Quiz"
 
     async def test_filter_by_nonexistent_category(self, client):
         resp = await client.get("/api/quizzes?category_id=00000000-0000-0000-0000-000000000000")

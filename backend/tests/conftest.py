@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
@@ -130,3 +131,15 @@ async def category(client: AsyncClient, admin_headers):
         await session.commit()
         await session.refresh(cat)
         return {"id": str(cat.id), "name": cat.name}
+
+
+@pytest_asyncio.fixture
+async def subcategory(client: AsyncClient, category):
+    """Create a subcategory under the test category."""
+    from app.models import Subcategory
+    async with TestSessionLocal() as session:
+        sub = Subcategory(name="Test Subcategory", category_id=uuid.UUID(category["id"]))
+        session.add(sub)
+        await session.commit()
+        await session.refresh(sub)
+        return {"id": str(sub.id), "name": sub.name, "category_id": category["id"]}
