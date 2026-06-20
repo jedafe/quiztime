@@ -75,6 +75,7 @@ class Quiz(Base):
     description = Column(Text, default="")
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id"), nullable=True)
+    language = Column(String(10), default="en", nullable=False)
     created_at = Column(DateTime, default=utcnow)
 
     owner = relationship("User", back_populates="quizzes")

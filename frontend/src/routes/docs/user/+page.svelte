@@ -1,5 +1,6 @@
 <script lang="ts">
   import { page } from '$app/stores';
+  import { translate } from '$lib/stores/i18n';
 
   const faqItems = [
     { q: 'Can I take a quiz without an account?', a: 'No. You must be logged in so your scores are saved.' },
@@ -26,32 +27,32 @@
 </script>
 
 <svelte:head>
-  <title>User Guide — QuizTime</title>
+  <title>{$translate('docs.userGuide')} — QuizTime</title>
 </svelte:head>
 
 <div class="mb-8">
-  <h1 class="mb-2 text-4xl font-bold heading-serif">User Guide</h1>
-  <p class="opacity-60">Everything you need to know about using QuizTime.</p>
+  <h1 class="mb-2 text-4xl font-bold heading-serif">{$translate('docs.userGuide')}</h1>
+  <p class="opacity-60">{$translate('docs.userGuideSubtitle')}</p>
 </div>
 
 <!-- Mobile TOC -->
 <details class="mb-6 rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] lg:hidden">
   <summary class="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-surface-200-800)] rounded-xl">
     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-    Contents
+    {$translate('docs.contents')}
   </summary>
   <div class="space-y-0.5 border-t border-[var(--color-surface-300-700)] px-3 py-2">
-    <a href="#getting-started" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Getting Started</a>
-    <a href="#browse" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Browsing Quizzes</a>
-    <a href="#taking" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Taking a Quiz</a>
-    <a href="#results" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Viewing Results</a>
-    <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Your Dashboard</a>
-    <a href="#creating" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Creating a Quiz</a>
-    <a href="#editing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Editing a Quiz</a>
-    <a href="#import-export" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Import &amp; Export</a>
-    <a href="#embed" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Embed Quizzes</a>
-    <a href="#themes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Themes</a>
-    <a href="#faq" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">FAQ</a>
+    <a href="#getting-started" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.gettingStarted')}</a>
+    <a href="#browse" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.browsingQuizzes')}</a>
+    <a href="#taking" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.takingQuiz')}</a>
+    <a href="#results" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.viewingResults')}</a>
+    <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.yourDashboard')}</a>
+    <a href="#creating" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.creatingQuiz')}</a>
+    <a href="#editing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.editingQuiz')}</a>
+    <a href="#import-export" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.importExport')}</a>
+    <a href="#embed" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.embedQuizzes')}</a>
+    <a href="#themes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.themes')}</a>
+    <a href="#faq" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.faq')}</a>
   </div>
 </details>
 
@@ -59,20 +60,20 @@
   <aside class="hidden lg:block">
     <div class="sticky top-20 w-52 rounded-2xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] shadow-lg">
       <div class="border-b border-[var(--color-surface-300-700)] px-4 py-3">
-        <span class="text-sm font-semibold heading-serif">Contents</span>
+        <span class="text-sm font-semibold heading-serif">{$translate('docs.contents')}</span>
       </div>
       <div class="space-y-0.5 px-2 py-2">
-        <a href="#getting-started" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Getting Started</a>
-        <a href="#browse" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Browsing Quizzes</a>
-        <a href="#taking" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Taking a Quiz</a>
-        <a href="#results" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Viewing Results</a>
-        <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Your Dashboard</a>
-        <a href="#creating" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Creating a Quiz</a>
-        <a href="#editing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Editing a Quiz</a>
-        <a href="#import-export" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Import &amp; Export</a>
-        <a href="#embed" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Embed Quizzes</a>
-        <a href="#themes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Themes</a>
-        <a href="#faq" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">FAQ</a>
+        <a href="#getting-started" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.gettingStarted')}</a>
+        <a href="#browse" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.browsingQuizzes')}</a>
+        <a href="#taking" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.takingQuiz')}</a>
+        <a href="#results" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.viewingResults')}</a>
+        <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.yourDashboard')}</a>
+        <a href="#creating" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.creatingQuiz')}</a>
+        <a href="#editing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.editingQuiz')}</a>
+        <a href="#import-export" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.importExport')}</a>
+        <a href="#embed" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.embedQuizzes')}</a>
+        <a href="#themes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.themes')}</a>
+        <a href="#faq" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.faq')}</a>
       </div>
     </div>
   </aside>
@@ -80,7 +81,7 @@
   <main class="min-w-0 space-y-10">
 
     <section id="getting-started" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Getting Started</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.gettingStarted')}</h2>
       <h3 class="mt-4 font-semibold">What is QuizTime?</h3>
       <p>QuizTime is a quiz platform where you can take quizzes on various topics, track your scores, and create your own quizzes for others to play.</p>
       <h3 class="mt-4 font-semibold">Create an Account</h3>
@@ -96,7 +97,7 @@
     </section>
 
     <section id="browse" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Browsing Quizzes</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.browsingQuizzes')}</h2>
       <ol class="mt-2 space-y-1 text-sm">
         <li>1. Click <strong>"Browse"</strong> in the navigation bar.</li>
         <li>2. Scroll through the list of available quizzes.</li>
@@ -107,7 +108,7 @@
     </section>
 
     <section id="taking" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Taking a Quiz</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.takingQuiz')}</h2>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         <div class="rounded-lg bg-[var(--color-surface-200-800)] p-4">
           <h4 class="font-medium">Timer</h4>
@@ -135,7 +136,7 @@
     </section>
 
     <section id="results" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Viewing Results</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.viewingResults')}</h2>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         <div class="rounded-lg bg-[var(--color-surface-200-800)] p-4">
           <h4 class="font-medium">Score</h4>
@@ -166,7 +167,7 @@
     </section>
 
     <section id="dashboard" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Your Dashboard</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.yourDashboard')}</h2>
       <p>Click <strong>"Dashboard"</strong> to access your personal hub.</p>
       <h3 class="mt-4 font-semibold">Stats Cards</h3>
       <div class="mt-3 grid gap-3 sm:grid-cols-3">
@@ -188,7 +189,7 @@
     </section>
 
     <section id="creating" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Creating a Quiz</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.creatingQuiz')}</h2>
       <h3 class="mt-4 font-semibold">Step 1: Create the Quiz</h3>
       <ol class="mt-2 space-y-1 text-sm">
         <li>1. Click <strong>"Create Quiz"</strong> in the navigation bar.</li>
@@ -209,7 +210,7 @@
     </section>
 
     <section id="editing" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Editing a Quiz</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.editingQuiz')}</h2>
       <h3 class="mt-4 font-semibold">Accessing the Edit Page</h3>
       <ul class="mt-2 space-y-1 text-sm">
         <li>• From Dashboard, click <strong>"Edit"</strong> next to your quiz.</li>
@@ -225,7 +226,7 @@
     </section>
 
     <section id="import-export" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Import &amp; Export</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.importExport')}</h2>
       <h3 class="mt-4 font-semibold">Exporting a Quiz</h3>
       <p class="text-sm">If you own a quiz, open its detail page and click <strong>"Export JSON"</strong>. A JSON file containing the quiz and all its questions (including correct answers) downloads to your computer.</p>
       <h3 class="mt-4 font-semibold">Importing a Quiz</h3>
@@ -240,7 +241,7 @@
     </section>
 
     <section id="embed" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Embedding Quizzes</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.embedQuizzes')}</h2>
       <p class="text-sm">You can embed your quizzes on any website, blog, or Notion page using an iframe snippet.</p>
       <h3 class="mt-4 font-semibold">Getting the Embed Code</h3>
       <ol class="mt-2 space-y-1 text-sm">
@@ -261,7 +262,7 @@
     </section>
 
     <section id="themes" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Themes</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.themes')}</h2>
       <p>Click the sun/moon icon in the navigation bar to toggle between dark and light modes. Your choice persists across sessions.</p>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         <div class="rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-200-800)] p-4 text-center">
@@ -279,7 +280,7 @@
     </section>
 
     <section id="faq" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">FAQ</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.faq')}</h2>
       <div class="mt-4 space-y-3">
         {#each faqItems as item}
           <details class="group rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-50-950)]">

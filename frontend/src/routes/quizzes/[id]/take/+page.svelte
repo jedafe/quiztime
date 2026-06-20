@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translate } from '$lib/stores/i18n';
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
@@ -130,7 +131,7 @@
 </script>
 
 <svelte:head>
-  <title>Take Quiz — {quiz.title}</title>
+  <title>{$translate('quiz.takeQuiz')} — {quiz.title}</title>
 </svelte:head>
 
 <div class="page-enter mx-auto max-w-2xl">
@@ -140,11 +141,11 @@
 
   {#if !hasAnswers}
     <div class="frame p-8 text-center">
-      <h2 class="text-xl font-bold">Login Required</h2>
-      <p class="mt-2 opacity-50">You need to be logged in to take this quiz.</p>
+      <h2 class="text-xl font-bold">{$translate('take.loginRequired')}</h2>
+      <p class="mt-2 opacity-50">{$translate('take.loginToTake')}</p>
       <div class="mt-6 flex justify-center gap-2">
-        <a href="/login" class="btn-pill btn-pill-primary">Login</a>
-        <a href="/register" class="btn-pill btn-pill-outline">Register</a>
+        <a href="/login" class="btn-pill btn-pill-primary">{$translate('auth.loginTitle')}</a>
+        <a href="/register" class="btn-pill btn-pill-outline">{$translate('auth.registerTitle')}</a>
       </div>
     </div>
   {:else}
@@ -152,7 +153,7 @@
       <!-- Header -->
       <div class="flex items-center justify-between">
         <span class="text-sm font-medium opacity-50">
-          Question {currentIndex + 1} of {totalQuestions}
+          {$translate('take.questionOf', {current: currentIndex + 1, total: totalQuestions})}
         </span>
         <span class="rounded-full px-3 py-1 text-sm font-bold
           {timerUrgent
@@ -206,7 +207,7 @@
           <div class="mt-5 rounded-xl px-5 py-3.5 text-sm font-semibold {isCorrect
             ? 'bg-[var(--color-success-500)]/15 text-[var(--color-success-500)]'
             : 'bg-[var(--color-error-500)]/15 text-[var(--color-error-500)]'}">
-            {isCorrect ? '✓ Correct!' : '✗ Wrong'}
+            {isCorrect ? $translate('take.correct') : $translate('take.wrong')}
           </div>
         {/if}
 
@@ -214,18 +215,18 @@
         <div class="mt-8 flex justify-center gap-3">
           {#if !showFeedback}
             <button class="btn-pill btn-pill-outline" onclick={skipQuestion}>
-              Skip
+              {$translate('quiz.skip')}
             </button>
             <button
               class="btn-pill btn-pill-primary"
               onclick={checkAnswer}
               disabled={selectedOptions.length === 0}
             >
-              Check
+              {$translate('take.check')}
             </button>
           {:else}
             <button class="btn-pill btn-pill-primary" onclick={nextQuestion}>
-              {currentIndex < totalQuestions - 1 ? 'Next →' : 'Finish'}
+              {currentIndex < totalQuestions - 1 ? $translate('take.nextArrow') : $translate('quiz.finish')}
             </button>
           {/if}
         </div>

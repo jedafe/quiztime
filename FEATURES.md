@@ -1,13 +1,13 @@
 # Feature Roadmap — QuizTime
 
-Planned features to drive wider adoption, organized by implementation priority.
+All planned features are implemented. This document serves as a feature reference.
 
 ---
 
 ## Tier 1 — Viral Growth & Sharing
 
 ### 1. Share & Challenge System
-**Status**: Skill file ready → `.config/opencode/skills/share-challenge-feature.md`
+**Status**: ✅ Implemented
 
 After finishing a quiz, users can:
 - Share results as a link with rich OG preview (inline SVG score card)
@@ -17,7 +17,7 @@ After finishing a quiz, users can:
 - Dashboard section listing all sent/received challenges
 
 ### 2. Public Per-Quiz Leaderboard
-**Status**: Skill file ready → `.config/opencode/skills/leaderboard-feature.md`
+**Status**: ✅ Implemented
 
 - Top 20 scores per quiz with username, score, percentage, time, date
 - Period filters: Today / This Week / This Month / All Time
@@ -31,15 +31,15 @@ After finishing a quiz, users can:
 ## Tier 2 — Discovery & Social Proof
 
 ### 3. Quiz Search, Filtering & Sorting
-**Status**: Skill file ready → `.config/opencode/skills/search-filter-sort-feature.md`
+**Status**: ✅ Implemented
 
 - Search bar on browse page (search by title, description)
 - Category/tag filtering
 - Sort by: newest, popular (most attempts), highest rated
-- Proper pagination UI (currently uses `page_size=100` with no pagination controls)
+- Pagination controls
 
 ### 4. Quiz Ratings & Reviews
-**Status**: Skill file ready → `.config/opencode/skills/ratings-reviews-feature.md`
+**Status**: ✅ Implemented
 
 - 5-star rating system per quiz
 - Optional written review
@@ -98,21 +98,34 @@ After finishing a quiz, users can:
 ## Tier 5 — Platform Maturity
 
 ### 9. Multi-Language / i18n
-- Language switcher in navbar
-- Translated UI strings (start with Spanish + French)
-- Quiz content language tagging so users find content in their language
+**Status**: ✅ Implemented
+
+- Language switcher in navbar (🇬🇧 EN / 🇪🇸 ES / 🇫🇷 FR)
+- 3 locale files (~450 lines each, 22 namespace sections): English, Spanish, French
+- All 20 frontend pages fully translated via `$translate()` derived store
+- Lightweight writable+derived i18n store (no external library)
+- Template parameter support: `{$translate('key', {name: val})}`
+- Locale persisted in localStorage
+- Quiz content language tagging (`language` column on Quiz model)
 
 ### 10. Admin Dashboard
-- Site-wide stats: total users, quizzes, attempts, DAU/WAU
-- Top quizzes and creators
-- User management table (ban, role change, view activity)
-- Recent reports/moderations
+**Status**: ✅ Implemented
+
+- 8-tab admin interface at `/admin`: Overview, Users, Quizzes, Creators, Categories, Subcategories, Badge Definitions, All Attempts
+- Site-wide stats: total users, quizzes, attempts, DAU
+- User management: list, role change, delete
+- Quiz management: list all quizzes site-wide, force-delete
+- Creators leaderboard: top quiz creators by count
+- Category/Subcategory CRUD with inline forms
+- Badge definition CRUD
+- All attempts table with pagination and user/quiz filters
+- Backend: 17 admin CRUD endpoints under `/api/admin/` (all protected by `require_admin`)
 
 ---
 
 ## Implementation Notes
 
 - Features are designed to be built incrementally, starting with Tier 1
-- Each feature has a corresponding skill file in `.config/opencode/skills/` with detailed implementation plans
+- All 10 feature tiers are now fully implemented
 - See `AGENTS.md` for the system architecture reference
 - All new DB models require `alembic revision --autogenerate -m "description"` for migrations

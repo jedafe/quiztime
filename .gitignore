@@ -24,6 +24,7 @@ build/
 .opencode/
 .omo/
 .playwright-mcp/
+.playwright-cli/
 .config/
 
 # OS
@@ -39,6 +40,8 @@ coverage/
 .nyc_output/
 test.db
 test_*.db
+playwright-report/
+test-results/
 
 # Docker
 docker-compose.override.yml

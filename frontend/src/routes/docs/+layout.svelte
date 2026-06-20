@@ -2,11 +2,12 @@
   import { beforeNavigate } from '$app/navigation';
   import { page } from '$app/stores';
   import { isLoggedIn, isAdmin } from '$lib/stores/auth';
+  let { children } = $props();
 
-  $: path = $page.url.pathname;
-  $: isDeveloperGuide = path === '/docs/developer';
-  $: isAdminGuide = path === '/docs/admin';
-  $: isRestricted = isDeveloperGuide || isAdminGuide;
+  let path = $derived($page.url.pathname);
+  let isDeveloperGuide = $derived(path === '/docs/developer');
+  let isAdminGuide = $derived(path === '/docs/admin');
+  let isRestricted = $derived(isDeveloperGuide || isAdminGuide);
 
   beforeNavigate(({ cancel }) => {
     if (isRestricted && (!$isLoggedIn || !$isAdmin)) {
@@ -16,4 +17,4 @@
   });
 </script>
 
-<slot />
+{@render children()}

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translate } from '$lib/stores/i18n';
   const archCode = `quiz-v7/
 ├── backend/    FastAPI + SQLAlchemy + PostgreSQL
 ├── frontend/   SvelteKit 2 + Svelte 5 + Tailwind v4 + Skeleton v4
@@ -159,35 +160,35 @@ docs: add developer guide`;
 </script>
 
 <svelte:head>
-  <title>Developer Guide — QuizTime</title>
+  <title>{$translate('docs.developerGuide')} — QuizTime</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
 </svelte:head>
 
 <div class="mb-8">
-  <h1 class="mb-2 text-4xl font-bold heading-serif">Developer Guide</h1>
-  <p class="opacity-60">Architecture, setup, and contribution guidelines for QuizTime.</p>
+  <h1 class="mb-2 text-4xl font-bold heading-serif">{$translate('docs.developerGuide')}</h1>
+  <p class="opacity-60">{$translate('docs.devGuideSubtitle')}</p>
 </div>
 
 <!-- Mobile TOC -->
 <details class="mb-6 rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] lg:hidden">
   <summary class="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-surface-200-800)] rounded-xl">
     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-    Contents
+    {$translate('docs.contents')}
   </summary>
   <div class="space-y-0.5 border-t border-[var(--color-surface-300-700)] px-3 py-2">
-    <a href="#architecture" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Architecture</a>
-    <a href="#tech-stack" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Tech Stack</a>
-    <a href="#project-structure" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Project Structure</a>
-    <a href="#setup" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Local Setup</a>
-    <a href="#database" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Database</a>
-    <a href="#api" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">API Reference</a>
-    <a href="#auth" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Authentication</a>
-    <a href="#frontend" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Frontend</a>
-    <a href="#testing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Testing</a>
-    <a href="#deployment" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Deployment</a>
-    <a href="#contributing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Contributing</a>
+    <a href="#architecture" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.architecture')}</a>
+    <a href="#tech-stack" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.techStack')}</a>
+    <a href="#project-structure" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.projectStructure')}</a>
+    <a href="#setup" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.localSetup')}</a>
+    <a href="#database" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.database')}</a>
+    <a href="#api" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.apiReference')}</a>
+    <a href="#auth" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.authentication')}</a>
+    <a href="#frontend" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.frontend')}</a>
+    <a href="#testing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.testing')}</a>
+    <a href="#deployment" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.deployment')}</a>
+    <a href="#contributing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.contributing')}</a>
   </div>
 </details>
 
@@ -195,20 +196,20 @@ docs: add developer guide`;
   <aside class="hidden lg:block">
     <div class="sticky top-20 w-52 rounded-2xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] shadow-lg">
       <div class="border-b border-[var(--color-surface-300-700)] px-4 py-3">
-        <span class="text-sm font-semibold heading-serif">Contents</span>
+        <span class="text-sm font-semibold heading-serif">{$translate('docs.contents')}</span>
       </div>
       <div class="space-y-0.5 px-2 py-2">
-        <a href="#architecture" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Architecture</a>
-        <a href="#tech-stack" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Tech Stack</a>
-        <a href="#project-structure" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Project Structure</a>
-        <a href="#setup" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Local Setup</a>
-        <a href="#database" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Database</a>
-        <a href="#api" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">API Reference</a>
-        <a href="#auth" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Authentication</a>
-        <a href="#frontend" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Frontend</a>
-        <a href="#testing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Testing</a>
-        <a href="#deployment" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Deployment</a>
-        <a href="#contributing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Contributing</a>
+        <a href="#architecture" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.architecture')}</a>
+        <a href="#tech-stack" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.techStack')}</a>
+        <a href="#project-structure" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.projectStructure')}</a>
+        <a href="#setup" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.localSetup')}</a>
+        <a href="#database" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.database')}</a>
+        <a href="#api" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.apiReference')}</a>
+        <a href="#auth" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.authentication')}</a>
+        <a href="#frontend" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.frontend')}</a>
+        <a href="#testing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.testing')}</a>
+        <a href="#deployment" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.deployment')}</a>
+        <a href="#contributing" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.contributing')}</a>
       </div>
     </div>
   </aside>
@@ -216,7 +217,7 @@ docs: add developer guide`;
   <main class="min-w-0 space-y-12 stagger">
 
     <section id="architecture" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Architecture</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.architecture')}</h2>
         <p>QuizTime is a full-stack monorepo with a clear separation between backend API and frontend SPA.</p>
         <pre class="code mt-2 p-4"><code>{archCode}</code></pre>
         <hr class="my-4 border-[var(--color-surface-300-700)]" />
@@ -230,7 +231,7 @@ docs: add developer guide`;
     </section>
 
     <section id="tech-stack" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Tech Stack</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.techStack')}</h2>
         <div class="-mx-6 overflow-x-auto px-6">
           <table class="table w-full min-w-[500px]">
             <thead><tr><th>Layer</th><th>Technology</th><th>Version</th><th>Notes</th></tr></thead>
@@ -251,7 +252,7 @@ docs: add developer guide`;
     </section>
 
     <section id="project-structure" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Project Structure</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.projectStructure')}</h2>
         <h3 class="mt-4 font-semibold">Backend</h3>
         <pre class="code mt-2 p-4"><code>{backendCode}</code></pre>
         <h3 class="mt-4 font-semibold">Frontend</h3>
@@ -259,7 +260,7 @@ docs: add developer guide`;
     </section>
 
     <section id="setup" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Local Setup</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.localSetup')}</h2>
         <h3 class="mt-4 font-semibold">Prerequisites</h3>
         <ul class="mt-1 space-y-1 text-sm">
           <li>• Python 3.11+ (3.14 supported with asyncpg binary)</li>
@@ -279,7 +280,7 @@ docs: add developer guide`;
     </section>
 
     <section id="database" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Database</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.database')}</h2>
         <p>PostgreSQL with async SQLAlchemy. All primary keys are UUIDs. Engine uses lazy init pattern.</p>
         <div class="-mx-6 mt-4 overflow-x-auto px-6">
           <table class="table w-full min-w-[400px] text-sm">
@@ -307,7 +308,7 @@ docs: add developer guide`;
     </section>
 
     <section id="api" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">API Reference</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.apiReference')}</h2>
         <p>Interactive docs at <a href="http://localhost:8000/docs" class="text-[var(--color-primary-500)] hover:underline" target="_blank">localhost:8000/docs</a></p>
         <div class="-mx-6 mt-4 overflow-x-auto px-6">
           <table class="table w-full min-w-[500px] text-sm">
@@ -369,7 +370,7 @@ docs: add developer guide`;
     </section>
 
     <section id="auth" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Authentication</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.authentication')}</h2>
         <p>JWT-based. Passwords hashed with <code>bcrypt</code> (direct, not passlib). Tokens stored in <code>localStorage</code>, sent via <code>Authorization: Bearer &lt;token&gt;</code>.</p>
         <h3 class="mt-4 font-semibold">Token Flow</h3>
         <ol class="mt-1 space-y-1 text-sm">
@@ -399,7 +400,7 @@ docs: add developer guide`;
     </section>
 
     <section id="frontend" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Frontend Architecture</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.frontend')}</h2>
         <p>Built with Svelte 5 (runes syntax), SvelteKit 2, Tailwind CSS v4, and Skeleton v4 UI components.</p>
 
         <h3 class="mt-4 font-semibold">API Client Pattern</h3>
@@ -440,7 +441,7 @@ docs: add developer guide`;
     </section>
 
     <section id="testing" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Testing</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.testing')}</h2>
         <h3 class="mt-4 font-semibold">Backend (pytest)</h3>
         <pre class="code mt-2 p-4"><code>{testCode}</code></pre>
         <ul class="mt-2 space-y-1 text-sm">
@@ -453,7 +454,7 @@ docs: add developer guide`;
     </section>
 
     <section id="deployment" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Deployment</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.deployment')}</h2>
         <h3 class="mt-4 font-semibold">Production (Recommended)</h3>
         <p class="text-sm opacity-70 mb-2"><code>./start.sh</code> builds the frontend and starts production servers.</p>
         <pre class="code mt-2 p-4"><code>{prodCode}</code></pre>
@@ -468,7 +469,7 @@ docs: add developer guide`;
     </section>
 
     <section id="contributing" class="frame p-6">
-        <h2 class="mb-4 text-2xl font-bold">Contributing</h2>
+        <h2 class="mb-4 text-2xl font-bold">{$translate('docs.contributing')}</h2>
         <h3 class="mt-4 font-semibold">Code Style</h3>
         <ul class="mt-1 space-y-1 text-sm">
           <li>• Python: PEP 8, type hints, async/await throughout.</li>

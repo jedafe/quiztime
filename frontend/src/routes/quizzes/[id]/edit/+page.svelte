@@ -4,6 +4,7 @@
   import { isLoggedIn, currentUser } from '$lib/stores/auth';
   import { goto } from '$app/navigation';
   import type { PageData } from './$types';
+  import { translate } from '$lib/stores/i18n';
 
   let { data }: { data: PageData } = $props();
   let quiz = $state(data.quiz);
@@ -20,6 +21,7 @@
   let title = $state(quiz.title);
   let description = $state(quiz.description || '');
   let categoryId = $state(quiz.category_id || '');
+  let language = $state(quiz.language || 'en');
   let categories: any[] = $state([]);
   let subcategories: any[] = $state([]);
   let questions: ManagedQuestion[] = $state([]);
@@ -84,11 +86,12 @@
       const updated = await api.updateQuiz(quiz.id, {
         title, description,
         category_id: categoryId || null,
+        language,
       });
       categoryId = updated.category_id || '';
       if (categoryId) await loadSubcategories(categoryId);
       else subcategories = [];
-      toast = 'Quiz saved!';
+      toast = $translate('edit.quizSaved');
       setTimeout(() => (toast = ''), 3000);
     } catch (e: any) {
       error = e.message;
@@ -190,7 +193,7 @@
 </script>
 
 <svelte:head>
-  <title>Edit: {quiz.title} — QuizTime</title>
+  <title>{$translate('general.edit')}: {quiz.title} — QuizTime</title>
 </svelte:head>
 
 <div class="page-enter mx-auto max-w-3xl">
@@ -200,7 +203,7 @@
 
   {#if loading}
     <div class="flex justify-center py-20">
-      <span class="text-sm opacity-40">Loading...</span>
+      <span class="text-sm opacity-40">{$translate('general.loading')}</span>
     </div>
   {:else}
     {#if error}
@@ -211,28 +214,36 @@
 
     <!-- Quiz Info -->
     <div class="frame p-6">
-      <h2 class="mb-4 text-lg font-bold">Quiz Details</h2>
+      <h2 class="mb-4 text-lg font-bold">{$translate('edit.title')}</h2>
       <div class="space-y-4">
         <div>
-          <label class="mb-1.5 block text-sm font-medium">Title</label>
+          <label class="mb-1.5 block text-sm font-medium">{$translate('edit.titleLabel')}</label>
           <input type="text" bind:value={title} class="input-pill" />
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium">Category</label>
+          <label class="mb-1.5 block text-sm font-medium">{$translate('edit.categoryLabel')}</label>
           <select bind:value={categoryId} class="input-pill">
-            <option value="">None</option>
+            <option value="">{$translate('edit.none')}</option>
             {#each categories as cat}
               <option value={cat.id}>{cat.name}</option>
             {/each}
           </select>
         </div>
         <div>
-          <label class="mb-1.5 block text-sm font-medium">Description</label>
+          <label class="mb-1.5 block text-sm font-medium">{$translate('edit.languageLabel')}</label>
+          <select bind:value={language} class="input-pill">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1.5 block text-sm font-medium">{$translate('edit.descriptionLabel')}</label>
           <textarea bind:value={description} class="input-pill h-20 resize-none"></textarea>
         </div>
         <div class="flex justify-end">
           <button class="btn-pill btn-pill-primary" onclick={saveQuiz} disabled={saving}>
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? $translate('edit.saving') : $translate('edit.saveChanges')}
           </button>
         </div>
       </div>
@@ -240,9 +251,9 @@
 
     <!-- Existing Questions -->
     <div class="frame mt-6 p-6">
-      <h2 class="mb-4 text-lg font-bold">Questions ({questions.length})</h2>
+      <h2 class="mb-4 text-lg font-bold">{$translate('edit.questions', {count: questions.length})}</h2>
       {#if questions.length === 0}
-        <p class="text-sm opacity-40">No questions yet. Add one below.</p>
+        <p class="text-sm opacity-40">{$translate('edit.noQuestions')}</p>
       {:else}
         <div class="space-y-3">
           {#each questions as q}
@@ -251,14 +262,14 @@
                 <span class="mb-1 inline-block rounded-full bg-[var(--color-surface-200-800)] px-2 py-0.5 text-xs font-medium">{q.type}</span>
                 <p class="mt-1 font-medium">{q.text}</p>
                 <p class="mt-1 text-sm opacity-50">
-                  Options: {q.options.join(' → ')}
+                  {$translate('edit.options', {options: q.options.join(' → ')})}
                 </p>
                 <p class="mt-1 text-sm text-[var(--color-success-500)]">
-                  ✓ {q.answer.map((i) => q.options[i]).join(', ')}
+                  {$translate('edit.correctAnswer', {answers: q.answer.map((i) => q.options[i]).join(', ')})}
                 </p>
               </div>
               <button class="ml-4 shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-[var(--color-error-500)] transition-colors hover:bg-[var(--color-error-500)]/10" onclick={() => confirmDeleteQuestion(q.id)}>
-                Delete
+                {$translate('edit.deleteQuestion')}
               </button>
             </div>
           {/each}
@@ -268,35 +279,35 @@
 
     <!-- Add Question Form -->
     <div class="frame mt-6 p-6">
-      <h2 class="mb-4 text-lg font-bold">Add New Question</h2>
+      <h2 class="mb-4 text-lg font-bold">{$translate('edit.addNewQuestion')}</h2>
 
       <div class="space-y-4">
         <div>
-          <label class="mb-1.5 block text-sm font-medium">Question Text *</label>
+          <label class="mb-1.5 block text-sm font-medium">{$translate('edit.questionText')}</label>
           <textarea
             bind:value={newQuestion.text}
             class="input-pill h-20 resize-none"
-            placeholder="Enter your question..."
+            placeholder={$translate('edit.questionPlaceholder')}
           ></textarea>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="mb-1.5 block text-sm font-medium">Type</label>
+            <label class="mb-1.5 block text-sm font-medium">{$translate('edit.type')}</label>
             <select bind:value={newQuestion.type} class="input-pill">
-              <option value="single">Single Select</option>
-              <option value="multiple">Multi Select</option>
-              <option value="true-false">True/False</option>
+              <option value="single">{$translate('edit.singleSelect')}</option>
+              <option value="multiple">{$translate('edit.multiSelect')}</option>
+              <option value="true-false">{$translate('edit.trueFalse')}</option>
             </select>
           </div>
 
           <div>
-            <label class="mb-1.5 block text-sm font-medium">Subcategory</label>
+            <label class="mb-1.5 block text-sm font-medium">{$translate('edit.subcategory')}</label>
             {#if !categoryId}
-              <p class="text-xs opacity-40 mt-1">Set a category for this quiz first to choose a subcategory</p>
+              <p class="text-xs opacity-40 mt-1">{$translate('edit.setCategoryFirst')}</p>
             {:else}
               <select bind:value={newQuestion.subcategory_id} class="input-pill">
-                <option value="">None</option>
+                <option value="">{$translate('edit.none')}</option>
                 {#each subcategories as sub}
                   <option value={sub.id}>{sub.name}</option>
                 {/each}
@@ -316,7 +327,7 @@
                   value={newQuestion.options[i]}
                   oninput={(e) => updateOption(i, (e.target as HTMLInputElement).value)}
                   class="input-pill flex-1"
-                  placeholder="Option {String.fromCharCode(65 + i)}"
+                  placeholder={$translate('edit.optionPlaceholder', {letter: String.fromCharCode(65 + i)})}
                   disabled={newQuestion.type === 'true-false'}
                 />
                 <button
@@ -331,7 +342,7 @@
               </div>
             {/each}
           </div>
-          <p class="mt-1.5 text-xs opacity-40">Click the letter buttons to mark correct answers</p>
+          <p class="mt-1.5 text-xs opacity-40">{$translate('edit.markCorrect')}</p>
         </div>
 
         <button
@@ -339,7 +350,7 @@
           onclick={addQuestion}
           disabled={saving}
         >
-          {saving ? 'Adding...' : 'Add Question'}
+          {saving ? $translate('edit.adding') : $translate('edit.addQuestion')}
         </button>
       </div>
     </div>
@@ -359,11 +370,11 @@
 {#if showDeleteModal}
   <dialog class="modal modal-open">
     <div class="modal-box rounded-2xl bg-[var(--color-surface-100-900)]">
-      <h3 class="text-lg font-bold">Delete Question</h3>
-      <p class="py-4 text-sm opacity-60">Are you sure you want to delete this question? This action cannot be undone.</p>
+      <h3 class="text-lg font-bold">{$translate('edit.deleteTitle')}</h3>
+      <p class="py-4 text-sm opacity-60">{$translate('edit.deleteConfirm')}</p>
       <div class="modal-action gap-2">
-        <button class="btn-pill btn-pill-ghost" onclick={() => { showDeleteModal = false; questionToDelete = null; }}>Cancel</button>
-        <button class="btn-pill bg-[var(--color-error-500)] text-white hover:opacity-90" onclick={deleteQuestion}>Delete</button>
+        <button class="btn-pill btn-pill-ghost" onclick={() => { showDeleteModal = false; questionToDelete = null; }}>{$translate('general.cancel')}</button>
+        <button class="btn-pill bg-[var(--color-error-500)] text-white hover:opacity-90" onclick={deleteQuestion}>{$translate('general.delete')}</button>
       </div>
     </div>
     <form method="dialog" class="modal-backdrop">

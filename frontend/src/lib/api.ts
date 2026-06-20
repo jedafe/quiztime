@@ -56,13 +56,14 @@ function buildApi(fetchFn: FetchFn) {
 
     me: () => request<any>(fetchFn, '/auth/me'),
 
-    listQuizzes: (params?: { page?: number; pageSize?: number; search?: string; category_id?: string; sort_by?: string; sort_order?: string }) => {
+    listQuizzes: (params?: { page?: number; pageSize?: number; search?: string; category_id?: string; language?: string; sort_by?: string; sort_order?: string }) => {
       const p = params || {};
       const q = new URLSearchParams();
       q.set('page', String(p.page || 1));
       q.set('page_size', String(p.pageSize || 20));
       if (p.search) q.set('search', p.search);
       if (p.category_id) q.set('category_id', p.category_id);
+      if (p.language) q.set('language', p.language);
       if (p.sort_by) q.set('sort_by', p.sort_by);
       if (p.sort_order) q.set('sort_order', p.sort_order);
       return request<{ items: any[]; total: number; page: number; page_size: number; total_pages: number }>(
@@ -72,10 +73,10 @@ function buildApi(fetchFn: FetchFn) {
 
     getQuiz: (id: string) => request<any>(fetchFn, `/quizzes/${id}`),
 
-    createQuiz: (data: { title: string; description?: string; category_id?: string | null }) =>
+    createQuiz: (data: { title: string; description?: string; category_id?: string | null; language?: string }) =>
       request<any>(fetchFn, '/quizzes', { method: 'POST', body: JSON.stringify(data) }),
 
-    updateQuiz: (id: string, data: { title?: string; description?: string; category_id?: string | null }) =>
+    updateQuiz: (id: string, data: { title?: string; description?: string; category_id?: string | null; language?: string }) =>
       request<any>(fetchFn, `/quizzes/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
     deleteQuiz: (id: string) =>
@@ -202,9 +203,92 @@ function buildApi(fetchFn: FetchFn) {
     getEmbedSnippet: (quizId: string) =>
       request<{ embed_url: string; html: string; javascript: string }>(fetchFn, `/embed/${quizId}/snippet`),
 
-    // ── Embed Submissions (for quiz owner) ───────────────
     getEmbedSubmissions: (quizId: string) =>
       request<any[]>(fetchFn, `/embed/${quizId}/submissions`),
+
+    // ── Admin ────────────────────────────────────────────
+    getAdminStats: () =>
+      request<any>(fetchFn, '/admin/stats'),
+
+    listAdminUsers: (page = 1, pageSize = 20) =>
+      request<{ items: any[]; total: number; page: number; page_size: number; total_pages: number }>(
+        fetchFn, `/admin/users?page=${page}&page_size=${pageSize}`
+      ),
+
+    changeUserRole: (userId: string, role: string) =>
+      request<{ message: string }>(fetchFn, `/admin/users/${userId}/role?role=${role}`, { method: 'PATCH' }),
+
+    getAdminTopQuizzes: (limit = 10) =>
+      request<any[]>(fetchFn, `/admin/top-quizzes?limit=${limit}`),
+
+    getAdminTopCreators: (limit = 10) =>
+      request<any[]>(fetchFn, `/admin/top-creators?limit=${limit}`),
+
+    // ── Admin Categories ──
+    adminListCategories: () =>
+      request<any[]>(fetchFn, '/admin/categories'),
+
+    adminCreateCategory: (data: { name: string }) =>
+      request<any>(fetchFn, '/admin/categories', { method: 'POST', body: JSON.stringify(data) }),
+
+    adminUpdateCategory: (id: string, data: { name: string }) =>
+      request<any>(fetchFn, `/admin/categories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+    adminDeleteCategory: (id: string) =>
+      request<{ message: string }>(fetchFn, `/admin/categories/${id}`, { method: 'DELETE' }),
+
+    // ── Admin Subcategories ──
+    adminListSubcategories: (categoryId?: string) =>
+      request<any[]>(fetchFn, `/admin/subcategories${categoryId ? `?category_id=${categoryId}` : ''}`),
+
+    adminCreateSubcategory: (data: { name: string; category_id: string }) =>
+      request<any>(fetchFn, '/admin/subcategories', { method: 'POST', body: JSON.stringify(data) }),
+
+    adminUpdateSubcategory: (id: string, data: { name?: string; category_id?: string }) =>
+      request<any>(fetchFn, `/admin/subcategories/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+    adminDeleteSubcategory: (id: string) =>
+      request<{ message: string }>(fetchFn, `/admin/subcategories/${id}`, { method: 'DELETE' }),
+
+    // ── Admin Badge Definitions ──
+    adminListBadgeDefinitions: () =>
+      request<any[]>(fetchFn, '/admin/badge-definitions'),
+
+    adminCreateBadgeDefinition: (data: { key: string; name: string; description?: string; icon?: string; criteria?: any }) =>
+      request<any>(fetchFn, '/admin/badge-definitions', { method: 'POST', body: JSON.stringify(data) }),
+
+    adminUpdateBadgeDefinition: (id: string, data: { key?: string; name?: string; description?: string; icon?: string; criteria?: any }) =>
+      request<any>(fetchFn, `/admin/badge-definitions/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+
+    adminDeleteBadgeDefinition: (id: string) =>
+      request<{ message: string }>(fetchFn, `/admin/badge-definitions/${id}`, { method: 'DELETE' }),
+
+    // ── Admin Attempts ──
+    adminListAttempts: (params?: { page?: number; pageSize?: number; quizId?: string; userId?: string }) => {
+      const p = params || {};
+      const q = new URLSearchParams();
+      q.set('page', String(p.page || 1));
+      q.set('page_size', String(p.pageSize || 20));
+      if (p.quizId) q.set('quiz_id', p.quizId);
+      if (p.userId) q.set('user_id', p.userId);
+      return request<{ items: any[]; total: number; page: number; page_size: number; total_pages: number }>(
+        fetchFn, `/admin/attempts?${q.toString()}`
+      );
+    },
+
+    // ── Admin Quizzes (full list + force delete) ──
+    adminListQuizzes: (params?: { page?: number; pageSize?: number }) => {
+      const p = params || {};
+      const q = new URLSearchParams();
+      q.set('page', String(p.page || 1));
+      q.set('page_size', String(p.pageSize || 20));
+      return request<{ items: any[]; total: number; page: number; page_size: number; total_pages: number }>(
+        fetchFn, `/admin/quizzes?${q.toString()}`
+      );
+    },
+
+    adminDeleteQuiz: (id: string) =>
+      request<{ message: string }>(fetchFn, `/admin/quizzes/${id}`, { method: 'DELETE' }),
   };
 }
 

@@ -114,12 +114,14 @@ class QuizCreate(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str = ""
     category_id: Optional[UUID] = None
+    language: str = "en"
 
 
 class QuizUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     category_id: Optional[UUID] = None
+    language: Optional[str] = None
 
 
 class QuizResponse(BaseModel):
@@ -128,6 +130,7 @@ class QuizResponse(BaseModel):
     description: str
     created_by: UUID
     category_id: Optional[UUID] = None
+    language: str = "en"
     created_at: datetime
     question_count: int = 0
     attempt_count: int = 0
@@ -143,6 +146,7 @@ class QuizDetail(BaseModel):
     description: str
     created_by: UUID
     category_id: Optional[UUID] = None
+    language: str = "en"
     created_at: datetime
     questions: list[QuestionPublic] = []
     attempt_count: int = 0
@@ -159,6 +163,7 @@ class QuizWithAnswers(BaseModel):
     description: str
     created_by: UUID
     category_id: Optional[UUID] = None
+    language: str = "en"
     created_at: datetime
     questions: list[QuestionResponse] = []
 
@@ -412,6 +417,7 @@ class QuizExport(BaseModel):
     title: str
     description: str
     category_name: Optional[str] = None
+    language: str = "en"
     questions: list[QuestionExport]
 
 
@@ -419,6 +425,7 @@ class QuizImport(BaseModel):
     title: str = Field(min_length=1, max_length=255)
     description: str = ""
     category_name: Optional[str] = None
+    language: str = "en"
     questions: list[QuestionImport]
 
 

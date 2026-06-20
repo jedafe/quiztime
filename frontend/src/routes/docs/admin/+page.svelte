@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translate } from '$lib/stores/i18n';
   const categoryCode = `POST /api/categories
 Authorization: Bearer <admin-token>
 
@@ -11,29 +12,29 @@ GET /api/attempts/{attempt_id}`;
 </script>
 
 <svelte:head>
-  <title>Admin Guide — QuizTime</title>
+  <title>{$translate('docs.adminGuide')} — QuizTime</title>
 </svelte:head>
 
 <div class="mb-8">
-  <h1 class="mb-2 text-4xl font-bold heading-serif">Admin Guide</h1>
-  <p class="opacity-60">Administration and management guide for QuizTime.</p>
+  <h1 class="mb-2 text-4xl font-bold heading-serif">{$translate('docs.adminGuide')}</h1>
+  <p class="opacity-60">{$translate('docs.adminGuideSubtitle')}</p>
 </div>
 
 <!-- Mobile TOC -->
 <details class="mb-6 rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] lg:hidden">
   <summary class="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-semibold transition-colors hover:bg-[var(--color-surface-200-800)] rounded-xl">
     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
-    Contents
+    {$translate('docs.contents')}
   </summary>
   <div class="space-y-0.5 border-t border-[var(--color-surface-300-700)] px-3 py-2">
-    <a href="#quickstart" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Quick Start</a>
-    <a href="#login" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Admin Login</a>
-    <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Dashboard</a>
-    <a href="#manage-quizzes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Manage Quizzes</a>
-    <a href="#categories" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Categories</a>
-    <a href="#users" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">User Management</a>
-    <a href="#analytics" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Analytics</a>
-    <a href="#security" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Security</a>
+    <a href="#quickstart" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminQuickStart')}</a>
+    <a href="#login" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminLogin')}</a>
+    <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminDashboard')}</a>
+    <a href="#manage-quizzes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.manageQuizzes')}</a>
+    <a href="#categories" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminCategories')}</a>
+    <a href="#users" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.userManagement')}</a>
+    <a href="#analytics" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.analytics')}</a>
+    <a href="#security" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.security')}</a>
   </div>
 </details>
 
@@ -41,17 +42,17 @@ GET /api/attempts/{attempt_id}`;
   <aside class="hidden lg:block">
     <div class="sticky top-20 w-52 rounded-2xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-100-900)] shadow-lg">
       <div class="border-b border-[var(--color-surface-300-700)] px-4 py-3">
-        <span class="text-sm font-semibold heading-serif">Contents</span>
+        <span class="text-sm font-semibold heading-serif">{$translate('docs.contents')}</span>
       </div>
       <div class="space-y-0.5 px-2 py-2">
-        <a href="#quickstart" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Quick Start</a>
-        <a href="#login" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Admin Login</a>
-        <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Dashboard</a>
-        <a href="#manage-quizzes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Manage Quizzes</a>
-        <a href="#categories" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Categories</a>
-        <a href="#users" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">User Management</a>
-        <a href="#analytics" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Analytics</a>
-        <a href="#security" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">Security</a>
+        <a href="#quickstart" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminQuickStart')}</a>
+        <a href="#login" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminLogin')}</a>
+        <a href="#dashboard" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminDashboard')}</a>
+        <a href="#manage-quizzes" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.manageQuizzes')}</a>
+        <a href="#categories" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.adminCategories')}</a>
+        <a href="#users" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.userManagement')}</a>
+        <a href="#analytics" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.analytics')}</a>
+        <a href="#security" class="block rounded-lg px-2 py-1.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]">{$translate('docs.security')}</a>
       </div>
     </div>
   </aside>
@@ -59,7 +60,7 @@ GET /api/attempts/{attempt_id}`;
   <main class="min-w-0 space-y-10">
 
     <section id="quickstart" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Quick Start</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.adminQuickStart')}</h2>
       <p class="text-sm">Start the development servers with one command:</p>
       <pre class="code mt-2 rounded-xl p-4"><code>./dev.sh</code></pre>
       <p class="mt-2 text-sm">This starts the backend on <code>localhost:8000</code> and frontend on <code>localhost:5173</code>.</p>
@@ -72,7 +73,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="login" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Admin Login</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.adminLogin')}</h2>
       <p>Admin accounts have full access to all features.</p>
       <div class="mt-4 rounded-lg bg-[var(--color-info-500)]/15 px-4 py-3 text-sm text-[var(--color-info-500)]">
         <h3 class="font-bold">Default Credentials</h3>
@@ -83,7 +84,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="dashboard" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Dashboard</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.adminDashboard')}</h2>
       <p>After logging in, the Dashboard shows your quizzes and attempt history.</p>
       <h3 class="mt-4 font-semibold">Stats Overview</h3>
       <div class="mt-3 grid gap-3 sm:grid-cols-3">
@@ -105,7 +106,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="manage-quizzes" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Manage Quizzes</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.manageQuizzes')}</h2>
       <h3 class="mt-4 font-semibold">Creating a New Quiz</h3>
       <ol class="mt-2 space-y-1 text-sm">
         <li>1. Click <strong>"Create Quiz"</strong> in the navigation bar.</li>
@@ -130,7 +131,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="categories" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Categories</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.adminCategories')}</h2>
       <p>Categories help organize questions by topic. Only admins can create categories.</p>
       <h3 class="mt-4 font-semibold">Creating a Category</h3>
       <pre class="code mt-2 rounded-xl p-4"><code>{categoryCode}</code></pre>
@@ -139,7 +140,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="users" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">User Management</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.userManagement')}</h2>
       <h3 class="mt-4 font-semibold">User Roles</h3>
       <div class="frame overflow-hidden">
         <table class="table-frame text-sm">
@@ -162,7 +163,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="analytics" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Analytics</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.analytics')}</h2>
       <h3 class="mt-4 font-semibold">Quiz Statistics</h3>
       <pre class="code mt-2 rounded-xl p-4"><code>{statsCode}</code></pre>
       <p class="mt-2 text-sm">Returns: total attempts, average score, average percentage, best score.</p>
@@ -172,7 +173,7 @@ GET /api/attempts/{attempt_id}`;
     </section>
 
     <section id="security" class="frame overflow-hidden p-6">
-      <h2 class="mb-4 text-2xl font-bold">Security</h2>
+      <h2 class="mb-4 text-2xl font-bold">{$translate('docs.security')}</h2>
       <h3 class="mt-4 font-semibold">Production Hardening</h3>
       <ul class="mt-2 space-y-1 text-sm">
         <li>• Set a strong <code>SECRET_KEY</code> — app fails hard in production if using default.</li>

@@ -11,6 +11,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@sveltejs/adapter-auto": "^3.0.0",
     "@sveltejs/kit": "^2.65.2",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",

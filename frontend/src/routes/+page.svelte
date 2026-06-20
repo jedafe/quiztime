@@ -1,6 +1,7 @@
 <script lang="ts">
   import { api } from '$lib/api';
   import { isLoggedIn } from '$lib/stores/auth';
+  import { translate } from '$lib/stores/i18n';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -10,49 +11,42 @@
   <title>QuizTime — Test Your Knowledge</title>
 </svelte:head>
 
-<!-- Hero: 2-column split (OpenWork-inspired) -->
 <section class="page-enter relative -mx-4 sm:-mx-6">
   <div class="mx-auto grid max-w-6xl overflow-hidden rounded-none sm:mx-6 sm:rounded-2xl lg:grid-cols-2">
-    <!-- Left — Dark hero panel (OpenWork sign-in style) -->
     <div class="relative flex flex-col justify-center bg-[#142033] px-8 py-16 sm:px-12 lg:px-14">
-      <!-- Paper shader canvas effect -->
       <div class="pointer-events-none absolute inset-0 opacity-[0.04]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0); background-size: 24px 24px;"></div>
       <div class="relative z-10">
-        <!-- Eyebrow badge -->
         <div class="eyebrow mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.07] px-3 py-1 text-[0.625rem] font-semibold uppercase tracking-[0.18em] text-white/70 backdrop-blur-sm">
           <span class="h-1.5 w-1.5 rounded-full bg-emerald-400"></span>
           Quiz Platform v7
         </div>
-        <!-- Heading -->
         <h1 class="text-4xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
           One quiz,<br />
           <span class="text-[var(--color-primary-400)]">every seat.</span>
         </h1>
         <p class="mt-4 max-w-md text-base leading-relaxed text-white/60">
-          Challenge yourself with community-created quizzes. Create, share, and compete — all in one place.
+          {$translate('landing.tagline')}
         </p>
-        <!-- CTA buttons -->
         <div class="mt-8 flex flex-wrap gap-3">
           <a href="/quizzes" class="btn-pill bg-white !text-[var(--color-surface-950)] font-semibold shadow-lg hover:shadow-xl hover:opacity-90">
-            Browse Quizzes
+            {$translate('landing.browseQuizzes')}
           </a>
           {#if $isLoggedIn}
             <a href="/dashboard" class="btn-pill bg-white/10 text-white hover:bg-white/20">
-              Dashboard
+              {$translate('nav.dashboard')}
             </a>
           {:else}
             <a href="/register" class="btn-pill bg-white/10 text-white hover:bg-white/20">
-              Get Started
+              {$translate('landing.startCreating')}
             </a>
           {/if}
         </div>
       </div>
     </div>
 
-    <!-- Right — Feature cards panel -->
     <div class="flex flex-col justify-center gap-4 bg-[var(--color-surface-50-950)] px-8 py-16 sm:px-12 lg:px-14">
       <div class="space-y-1">
-        <p class="eyebrow">Features</p>
+        <p class="eyebrow">{$translate('landing.features')}</p>
         <h2 class="text-2xl font-bold tracking-[-0.03em]">Why QuizTime?</h2>
       </div>
       <div class="grid gap-3">
@@ -74,7 +68,6 @@
   </div>
 </section>
 
-<!-- Featured Quizzes -->
 {#if data.featured?.length > 0}
   <section class="page-enter mt-12">
     <div class="mb-6 flex items-center justify-between">
@@ -88,10 +81,13 @@
       {#each data.featured as quiz}
         <a href="/quizzes/{quiz.id}" class="frame-lift block p-5">
           <h3 class="font-bold transition-colors group-hover:text-[var(--color-primary-500)]">{quiz.title}</h3>
-          <p class="mt-1 text-sm opacity-50">{quiz.question_count} questions</p>
+          <p class="mt-1 text-sm opacity-50">{quiz.question_count} {$translate('general.questions')}</p>
+          {#if quiz.language && quiz.language !== 'en'}
+            <span class="mt-2 inline-block rounded-full bg-[var(--color-primary-500)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-primary-500)]">{quiz.language === 'es' ? 'ES' : 'FR'}</span>
+          {/if}
           <div class="mt-4 flex items-center justify-end">
             <span class="btn-pill btn-pill-primary btn-pill-sm">
-              Take Quiz →
+              {$translate('quiz.takeQuiz')} →
             </span>
           </div>
         </a>
@@ -100,7 +96,6 @@
   </section>
 {/if}
 
-<!-- CTA Banner -->
 <section class="page-enter mt-12">
   <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#142033] to-[#1e2a45] px-8 py-12 text-center sm:px-14">
     <div class="pointer-events-none absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0); background-size: 20px 20px;"></div>
@@ -110,10 +105,10 @@
       <p class="mt-3 text-white/50">Join the community and start testing your knowledge today.</p>
       <div class="mt-6 flex justify-center gap-3">
         {#if $isLoggedIn}
-          <a href="/create" class="btn-pill bg-white !text-[var(--color-surface-950)] font-semibold">Create a Quiz</a>
+          <a href="/create" class="btn-pill bg-white !text-[var(--color-surface-950)] font-semibold">{$translate('nav.createQuiz')}</a>
         {:else}
-          <a href="/register" class="btn-pill bg-white !text-[var(--color-surface-950)] font-semibold">Join Free</a>
-          <a href="/login" class="btn-pill bg-white/10 text-white hover:bg-white/20">Sign In</a>
+          <a href="/register" class="btn-pill bg-white !text-[var(--color-surface-950)] font-semibold">{$translate('nav.register')}</a>
+          <a href="/login" class="btn-pill bg-white/10 text-white hover:bg-white/20">{$translate('nav.login')}</a>
         {/if}
       </div>
     </div>

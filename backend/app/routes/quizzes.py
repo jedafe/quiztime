@@ -24,6 +24,7 @@ async def list_quizzes(
     page_size: int = Query(20, ge=1, le=100),
     search: str = Query("", max_length=200),
     category_id: UUID = Query(None),
+    language: str = Query("", max_length=10),
     sort_by: str = Query("newest", pattern="^(newest|popular|rating)$"),
     sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     db: AsyncSession = Depends(get_db),
@@ -35,6 +36,8 @@ async def list_quizzes(
 
     if category_id:
         q = q.where(Quiz.category_id == category_id)
+    if language:
+        q = q.where(Quiz.language == language)
     q = q.outerjoin(Question)
 
     if search:
@@ -84,6 +87,7 @@ async def list_quizzes(
             description=quiz.description,
             created_by=quiz.created_by,
             category_id=quiz.category_id,
+            language=quiz.language,
             created_at=quiz.created_at,
             question_count=qcount,
             attempt_count=acount or 0,
@@ -106,7 +110,7 @@ async def create_quiz(
     db: AsyncSession = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    quiz = Quiz(title=data.title, description=data.description, category_id=data.category_id, created_by=user.id)
+    quiz = Quiz(title=data.title, description=data.description, category_id=data.category_id, language=data.language, created_by=user.id)
     db.add(quiz)
     await db.commit()
     await db.refresh(quiz)
@@ -119,7 +123,7 @@ async def create_quiz(
 
     return QuizResponse(
         id=quiz.id, title=quiz.title, description=quiz.description,
-        category_id=quiz.category_id,
+        category_id=quiz.category_id, language=quiz.language,
         created_by=quiz.created_by, created_at=quiz.created_at, question_count=0,
     )
 
@@ -150,6 +154,7 @@ async def get_quiz(quiz_id: UUID, db: AsyncSession = Depends(get_db)):
         description=quiz.description,
         created_by=quiz.created_by,
         category_id=quiz.category_id,
+        language=quiz.language,
         created_at=quiz.created_at,
         attempt_count=attempt_count,
         avg_rating=avg_rating,
@@ -182,6 +187,7 @@ async def get_quiz_manage(
         description=quiz.description,
         created_by=quiz.created_by,
         category_id=quiz.category_id,
+        language=quiz.language,
         created_at=quiz.created_at,
         questions=questions,
     )
@@ -213,6 +219,7 @@ async def export_quiz(
         title=quiz.title,
         description=quiz.description,
         category_name=category_name,
+        language=quiz.language,
         questions=[
             QuestionExport(type=q.type, text=q.text, options=q.options, answer=q.answer)
             for q in questions
@@ -237,6 +244,7 @@ async def import_quiz(
         title=data.title,
         description=data.description,
         category_id=category_id,
+        language=data.language,
         created_by=user.id,
     )
     db.add(quiz)
@@ -268,7 +276,7 @@ async def import_quiz(
 
     return QuizResponse(
         id=quiz.id, title=quiz.title, description=quiz.description,
-        category_id=quiz.category_id,
+        category_id=quiz.category_id, language=quiz.language,
         created_by=quiz.created_by, created_at=quiz.created_at, question_count=count,
     )
 
@@ -293,6 +301,7 @@ async def get_quiz_for_taking(
         description=quiz.description,
         created_by=quiz.created_by,
         category_id=quiz.category_id,
+        language=quiz.language,
         created_at=quiz.created_at,
         questions=questions,
     )
@@ -320,6 +329,8 @@ async def update_quiz(
         quiz.category_id = data.category_id
     elif "category_id" in data.model_dump(exclude_unset=True):
         quiz.category_id = None
+    if data.language is not None:
+        quiz.language = data.language
 
     await db.commit()
     await db.refresh(quiz)
@@ -332,6 +343,7 @@ async def update_quiz(
     return QuizResponse(
         id=quiz.id, title=quiz.title, description=quiz.description,
         created_by=quiz.created_by, category_id=quiz.category_id,
+        language=quiz.language,
         created_at=quiz.created_at, question_count=count,
     )
 

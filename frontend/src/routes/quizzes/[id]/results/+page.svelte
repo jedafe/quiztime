@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { translate } from '$lib/stores/i18n';
   import { api } from '$lib/api';
   import { isLoggedIn } from '$lib/stores/auth';
   import type { PageData } from './$types';
@@ -95,27 +96,27 @@
 </script>
 
 <svelte:head>
-  <title>Results — {quiz.title}</title>
+  <title>{$translate('results.grade')} — {quiz.title}</title>
 </svelte:head>
 
 <div class="page-enter mx-auto max-w-lg">
   <a href="/quizzes/{quiz.id}" class="mb-6 inline-flex items-center gap-1 text-sm font-medium opacity-50 transition-opacity hover:opacity-100">
-    ← {quiz.title}
+    ← {$translate('general.back')}
   </a>
 
   {#if loading}
     <div class="flex justify-center py-20">
-      <span class="text-sm opacity-40">Loading...</span>
+      <span class="text-sm opacity-40">{$translate('general.loading')}</span>
     </div>
   {:else}
     <div class="frame p-8 text-center">
       <h2 class="text-3xl font-bold">
-        {percentage >= 60 ? 'Congratulations!' : 'Keep trying!'}
+        {percentage >= 60 ? $translate('results.congratulations') : $translate('results.keepTrying')}
       </h2>
 
       {#if rank}
         <div class="mt-2 text-lg font-semibold text-[var(--color-primary-500)]">
-          Rank #{rank.rank}
+          {$translate('results.rank', {rank: rank.rank})}
         </div>
       {/if}
 
@@ -128,16 +129,16 @@
 
       <div class="mt-8 grid grid-cols-3 gap-4">
         <div>
-          <div class="text-xs font-medium uppercase tracking-wider opacity-40">Score</div>
+          <div class="text-xs font-medium uppercase tracking-wider opacity-40">{$translate('results.score')}</div>
           <div class="mt-1 text-xl font-bold">{score}/{total}</div>
         </div>
         <div>
-          <div class="text-xs font-medium uppercase tracking-wider opacity-40">Grade</div>
+          <div class="text-xs font-medium uppercase tracking-wider opacity-40">{$translate('results.grade')}</div>
           <div class="mt-1 text-xl font-bold text-[var(--color-{gradeColor}-500)]">{grade}</div>
         </div>
         {#if attempt?.time_spent}
           <div>
-            <div class="text-xs font-medium uppercase tracking-wider opacity-40">Time</div>
+            <div class="text-xs font-medium uppercase tracking-wider opacity-40">{$translate('results.time')}</div>
             <div class="mt-1 text-xl font-bold">
               {Math.floor(attempt.time_spent / 60)}:{String(attempt.time_spent % 60).padStart(2, '0')}
             </div>
@@ -146,36 +147,35 @@
       </div>
 
       <p class="mt-6 text-sm opacity-50">
-        You got <span class="font-semibold text-[var(--color-primary-500)]">{score}</span> out of
-        <span class="font-semibold text-[var(--color-primary-500)]">{total}</span> questions correct
+        {$translate('results.youGot', {score: score, total: total})}
       </p>
 
       <!-- Actions -->
       <div class="mt-8 flex flex-wrap justify-center gap-3">
-        <a href="/quizzes/{quiz.id}/take" class="btn-pill btn-pill-outline">Retry Quiz</a>
-        <a href="/quizzes" class="btn-pill btn-pill-primary">Browse More</a>
+        <a href="/quizzes/{quiz.id}/take" class="btn-pill btn-pill-outline">{$translate('results.retryQuiz')}</a>
+        <a href="/quizzes" class="btn-pill btn-pill-primary">{$translate('results.browseMore')}</a>
       </div>
 
       {#if $isLoggedIn && attemptId}
         <div class="mt-6 flex flex-wrap justify-center gap-3 border-t border-[var(--color-surface-300-700)] pt-6">
           <button class="btn-pill btn-pill-outline" onclick={createShareLink}>
-            Share Result
+            {$translate('results.shareResult')}
           </button>
           <button class="btn-pill btn-pill-outline" onclick={createChallenge} disabled={challengeCreated}>
-            {challengeCreated ? 'Challenge Created!' : 'Challenge Friend'}
+            {challengeCreated ? $translate('results.challengeCreated') : $translate('results.challengeFriend')}
           </button>
         </div>
 
         {#if challengeCreated}
           <div class="mt-3 frame p-3">
-            <p class="text-sm opacity-60">Share this challenge link:</p>
+            <p class="text-sm opacity-60">{$translate('results.shareThisLink')}</p>
             <div class="mt-1 flex items-center gap-2">
               <input
                 class="flex-1 rounded-lg border border-[var(--color-surface-300-700)] bg-transparent px-3 py-2 text-sm outline-none"
                 readonly
                 value="{window.location.origin}/challenge/{challengeCode}"
               />
-              <button class="btn-pill btn-pill-sm btn-pill-primary" onclick={copyShareUrl}>Copy</button>
+              <button class="btn-pill btn-pill-sm btn-pill-primary" onclick={copyShareUrl}>{$translate('results.copy')}</button>
             </div>
           </div>
         {/if}
@@ -188,23 +188,23 @@
 {#if shareModal}
   <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onclick={() => shareModal = false}>
     <div class="frame w-full max-w-sm p-6" onclick={(e) => e.stopPropagation()}>
-      <h3 class="text-lg font-bold">Share Your Result</h3>
+      <h3 class="text-lg font-bold">{$translate('results.shareYourResult')}</h3>
       <div class="mt-4">
-        <label class="text-xs font-medium uppercase tracking-wider opacity-40">Share Link</label>
+        <label class="text-xs font-medium uppercase tracking-wider opacity-40">{$translate('results.shareLink')}</label>
         <div class="mt-1 flex items-center gap-2">
           <input
             class="flex-1 rounded-lg border border-[var(--color-surface-300-700)] bg-transparent px-3 py-2 text-sm outline-none"
             readonly
             value={shareUrl}
           />
-          <button class="btn-pill btn-pill-sm btn-pill-primary" onclick={copyShareUrl}>Copy</button>
+          <button class="btn-pill btn-pill-sm btn-pill-primary" onclick={copyShareUrl}>{$translate('results.copy')}</button>
         </div>
       </div>
       <div class="mt-4">
-        <label class="text-xs font-medium uppercase tracking-wider opacity-40">OG URL</label>
+        <label class="text-xs font-medium uppercase tracking-wider opacity-40">{$translate('results.ogUrl')}</label>
         <p class="mt-1 text-sm opacity-50">/share/{shareCode}/og</p>
       </div>
-      <button class="btn-pill btn-pill-outline mt-5 w-full" onclick={() => shareModal = false}>Close</button>
+      <button class="btn-pill btn-pill-outline mt-5 w-full" onclick={() => shareModal = false}>{$translate('general.close')}</button>
     </div>
   </div>
 {/if}

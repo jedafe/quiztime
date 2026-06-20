@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { translate } from '$lib/stores/i18n';
   import { api } from '$lib/api';
 
   let { data } = $props();
@@ -11,7 +12,7 @@
   async function resend() {
     try {
       const r = await api.resendVerification();
-      message = r.message || 'Verification email sent!';
+      message = r.message || $translate('verify.emailSent');
       error = '';
     } catch (e: any) {
       error = e.message || 'Failed to resend.';
@@ -20,13 +21,13 @@
 </script>
 
 <svelte:head>
-  <title>Verify Email — QuizTime</title>
+  <title>{$translate('verify.title')} — QuizTime</title>
 </svelte:head>
 
 <div class="page-enter mx-auto max-w-md pt-12">
   <div class="text-center">
     <span class="text-4xl">{message ? '✅' : '📧'}</span>
-    <h1 class="mt-4 text-2xl font-bold tracking-[-0.02em]">Email Verification</h1>
+    <h1 class="mt-4 text-2xl font-bold tracking-[-0.02em]">{$translate('verify.title')}</h1>
   </div>
 
   <div class="frame mt-6 p-6">
@@ -34,16 +35,16 @@
       <div class="rounded-xl bg-[var(--color-success-500)]/12 px-4 py-3 text-sm text-[var(--color-success-500)]">
         {message}
       </div>
-      <a href="/dashboard" class="btn-pill btn-pill-primary mt-4 block w-full text-center">Go to Dashboard</a>
+      <a href="/dashboard" class="btn-pill btn-pill-primary mt-4 block w-full text-center">{$translate('verify.goToDashboard')}</a>
     {:else if error}
       <div class="rounded-xl bg-[var(--color-error-500)]/12 px-4 py-3 text-sm text-[var(--color-error-500)]">
         {error}
       </div>
       {#if token}
-        <p class="mt-3 text-sm opacity-60">The link may have expired. Request a new one below.</p>
+        <p class="mt-3 text-sm opacity-60">{$translate('verify.linkExpired')}</p>
       {/if}
     {:else}
-      <p class="text-sm opacity-60">No verification token provided. Click below to request a new verification email.</p>
+      <p class="text-sm opacity-60">{$translate('verify.noToken')}</p>
     {/if}
 
     {#if !message}
@@ -52,7 +53,7 @@
         onclick={resend}
         disabled={emailSent}
       >
-        {emailSent ? 'Sent!' : 'Resend Verification Email'}
+        {emailSent ? $translate('verify.sent') : $translate('verify.resend')}
       </button>
     {/if}
   </div>

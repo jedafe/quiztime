@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { api } from '$lib/api';
   import { isLoggedIn, currentUser } from '$lib/stores/auth';
+  import { translate } from '$lib/stores/i18n';
   import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
@@ -153,37 +154,42 @@
 
 <div class="page-enter">
   <a href="/quizzes" class="mb-6 inline-flex items-center gap-1 text-sm font-medium opacity-50 transition-opacity hover:opacity-100">
-    ← Back to Quizzes
+    {$translate('quizDetail.backToQuizzes')}
   </a>
 
   <div class="frame p-8">
-    <h1 class="text-3xl font-bold tracking-[-0.03em]">{quiz.title}</h1>
-    <p class="mt-2 opacity-50">{quiz.description || 'No description'}</p>
+    <div class="flex items-center gap-3">
+      <h1 class="text-3xl font-bold tracking-[-0.03em]">{quiz.title}</h1>
+      {#if quiz.language && quiz.language !== 'en'}
+        <span class="rounded-full bg-[var(--color-primary-500)]/10 px-2.5 py-0.5 text-xs font-medium text-[var(--color-primary-500)]">{quiz.language === 'es' ? 'Español' : 'Français'}</span>
+      {/if}
+    </div>
+    <p class="mt-2 opacity-50">{quiz.description || $translate('quizDetail.noDescription')}</p>
 
     <div class="stagger mt-8 grid grid-cols-3 gap-4 sm:gap-6">
       <div class="stat-pill text-center">
         <span class="text-2xl font-bold text-[var(--color-primary-500)]">{quiz.questions?.length || 0}</span>
-        <span class="eyebrow justify-center">Questions</span>
+        <span class="eyebrow justify-center">{$translate('quizDetail.questions')}</span>
       </div>
       <div class="stat-pill text-center">
         <span class="text-2xl font-bold text-[var(--color-secondary-500)]">{quiz.attempt_count || 0}</span>
-        <span class="eyebrow justify-center">Attempts</span>
+        <span class="eyebrow justify-center">{$translate('quizDetail.attempts')}</span>
       </div>
       <div class="stat-pill text-center">
         <span class="text-2xl font-bold text-[var(--color-warning-500)]">{quiz.avg_rating > 0 ? quiz.avg_rating : '—'}</span>
-        <span class="eyebrow justify-center">Rating</span>
+        <span class="eyebrow justify-center">{$translate('quizDetail.rating')}</span>
       </div>
     </div>
 
     <div class="mt-8 flex justify-end gap-2">
       {#if $isLoggedIn && ($currentUser?.id === quiz.created_by || $currentUser?.role === 'admin')}
-        <a href="/quizzes/{quiz.id}/edit" class="btn-pill btn-pill-outline">Edit Quiz</a>
+        <a href="/quizzes/{quiz.id}/edit" class="btn-pill btn-pill-outline">{$translate('quizDetail.editQuiz')}</a>
         <button onclick={handleExport} class="btn-pill btn-pill-outline" disabled={exportLoading}>
-          {exportLoading ? 'Exporting...' : 'Export JSON'}
+          {exportLoading ? $translate('quizDetail.exporting') : $translate('quizDetail.exportJson')}
         </button>
-        <button onclick={loadEmbedSnippet} class="btn-pill btn-pill-outline">Embed</button>
+        <button onclick={loadEmbedSnippet} class="btn-pill btn-pill-outline">{$translate('quizDetail.embed')}</button>
       {/if}
-      <a href="/quizzes/{quiz.id}/take" class="btn-pill btn-pill-primary">Start Quiz</a>
+      <a href="/quizzes/{quiz.id}/take" class="btn-pill btn-pill-primary">{$translate('quizDetail.startQuiz')}</a>
     </div>
     {#if exportError}
       <p class="mt-2 text-right text-xs text-[var(--color-error-500)]">{exportError}</p>
@@ -193,13 +199,13 @@
   {#if showEmbed}
     <div class="frame mt-4 p-4">
       <div class="flex items-center justify-between">
-        <h3 class="font-semibold text-sm">Embed this Quiz</h3>
-        <button class="text-xs opacity-50 hover:opacity-100" onclick={() => showEmbed = false}>Close</button>
+        <h3 class="font-semibold text-sm">{$translate('quizDetail.embedThisQuiz')}</h3>
+        <button class="text-xs opacity-50 hover:opacity-100" onclick={() => showEmbed = false}>{$translate('quizDetail.close')}</button>
       </div>
-      <p class="mt-1 text-xs opacity-50">Copy this iframe snippet to embed this quiz on any website:</p>
+      <p class="mt-1 text-xs opacity-50">{$translate('quizDetail.embedInstructions')}</p>
       <pre class="mt-2 overflow-x-auto rounded-lg bg-[var(--color-surface-100-900)] p-3 text-xs">{embedSnippet}</pre>
       <button onclick={copyEmbed} class="btn-pill btn-pill-primary btn-pill-sm mt-2">
-        {embedCopied ? 'Copied!' : 'Copy HTML'}
+        {embedCopied ? $translate('quizDetail.copied') : $translate('quizDetail.copyHtml')}
       </button>
     </div>
   {/if}
@@ -210,17 +216,17 @@
       class="btn-pill btn-pill-ghost btn-pill-sm"
       style={tab === 'stats' ? 'background-color:var(--color-primary-500);color:#fff' : ''}
       onclick={() => tab = 'stats'}
-    >Statistics</button>
+    >{$translate('quizDetail.statistics')}</button>
     <button
       class="btn-pill btn-pill-ghost btn-pill-sm"
       style={tab === 'leaderboard' ? 'background-color:var(--color-primary-500);color:#fff' : ''}
       onclick={() => tab = 'leaderboard'}
-    >Leaderboard</button>
+    >{$translate('quizDetail.leaderboard')}</button>
     <button
       class="btn-pill btn-pill-ghost btn-pill-sm"
       style={tab === 'reviews' ? 'background-color:var(--color-primary-500);color:#fff' : ''}
       onclick={() => { tab = 'reviews'; loadReviews(); }}
-    >Reviews</button>
+    >{$translate('quizDetail.reviews')}</button>
   </div>
 
   {#if tab === 'stats'}
@@ -229,19 +235,19 @@
         <div class="grid grid-cols-3 gap-4">
           <div>
             <div class="text-2xl font-bold text-[var(--color-primary-500)]">{stats.total_attempts}</div>
-            <div class="text-xs uppercase tracking-wider opacity-40 mt-1">Total Attempts</div>
+            <div class="text-xs uppercase tracking-wider opacity-40 mt-1">{$translate('quizDetail.totalAttempts')}</div>
           </div>
           <div>
             <div class="text-2xl font-bold text-[var(--color-secondary-500)]">{stats.avg_percentage}%</div>
-            <div class="text-xs uppercase tracking-wider opacity-40 mt-1">Avg Score</div>
+            <div class="text-xs uppercase tracking-wider opacity-40 mt-1">{$translate('quizDetail.avgScore')}</div>
           </div>
           <div>
             <div class="text-2xl font-bold text-[var(--color-tertiary-500)]">{stats.avg_time_spent || 0}s</div>
-            <div class="text-xs uppercase tracking-wider opacity-40 mt-1">Avg Time</div>
+            <div class="text-xs uppercase tracking-wider opacity-40 mt-1">{$translate('quizDetail.avgTime')}</div>
           </div>
         </div>
       {:else}
-        <p class="py-8 text-sm opacity-40">No statistics yet.</p>
+        <p class="py-8 text-sm opacity-40">{$translate('quizDetail.noStatsYet')}</p>
       {/if}
     </div>
   {:else if tab === 'leaderboard'}
@@ -253,28 +259,28 @@
             style={lbPeriod === p ? 'background-color:var(--color-primary-500);color:#fff' : ''}
             onclick={() => switchPeriod(p)}
           >
-            {p === 'all' ? 'All Time' : p === 'month' ? 'This Month' : p === 'week' ? 'This Week' : 'Today'}
+            {p === 'all' ? $translate('quizDetail.allTime') : p === 'month' ? $translate('quizDetail.thisMonth') : p === 'week' ? $translate('quizDetail.thisWeek') : $translate('quizDetail.today')}
           </button>
         {/each}
       </div>
 
       {#if lbLoading}
-        <div class="flex justify-center py-10"><span class="text-sm opacity-40">Loading...</span></div>
+        <div class="flex justify-center py-10"><span class="text-sm opacity-40">{$translate('quizDetail.loading')}</span></div>
       {:else if !leaderboard || leaderboard.entries.length === 0}
         <div class="py-10 text-center">
-          <p class="text-sm opacity-50">No attempts yet. Be the first!</p>
+          <p class="text-sm opacity-50">{$translate('quizDetail.noAttemptsYet')}</p>
         </div>
       {:else}
         <div class="frame overflow-hidden">
           <table class="table-frame">
             <thead>
               <tr>
-                <th class="w-12">Rank</th>
-                <th>User</th>
-                <th class="text-right">Score</th>
-                <th class="text-right">%</th>
-                <th class="hidden sm:table-cell text-right">Time</th>
-                <th class="hidden md:table-cell text-right">Date</th>
+                <th class="w-12">{$translate('quizDetail.rank')}</th>
+                <th>{$translate('quizDetail.user')}</th>
+                <th class="text-right">{$translate('quizDetail.score')}</th>
+                <th class="text-right">{$translate('quizDetail.percent')}</th>
+                <th class="hidden sm:table-cell text-right">{$translate('quizDetail.time')}</th>
+                <th class="hidden md:table-cell text-right">{$translate('quizDetail.date')}</th>
               </tr>
             </thead>
             <tbody>
@@ -287,7 +293,7 @@
                   <td class="font-medium">
                     {entry.username}
                     {#if entry.user_id === $currentUser?.id}
-                      <span class="ml-1.5 text-xs font-semibold text-[var(--color-primary-500)]">(you)</span>
+                      <span class="ml-1.5 text-xs font-semibold text-[var(--color-primary-500)]">{$translate('quizDetail.you')}</span>
                     {/if}
                   </td>
                   <td class="text-right font-semibold">{entry.score}/{entry.total}</td>
@@ -308,7 +314,7 @@
               <span>
                 <span class="font-bold">#{leaderboard.current_user_rank}</span>
                 <span class="ml-1 opacity-60">{leaderboard.current_user_entry.username}</span>
-                <span class="ml-1 text-xs opacity-40">(you)</span>
+                <span class="ml-1 text-xs opacity-40">{$translate('quizDetail.you')}</span>
               </span>
               <span class="font-semibold">{leaderboard.current_user_entry.score}/{leaderboard.current_user_entry.total}</span>
               <span class="font-semibold">{leaderboard.current_user_entry.percentage}%</span>
@@ -318,7 +324,7 @@
         {/if}
 
         <p class="mt-3 text-center text-xs opacity-40">
-          {leaderboard.total_entries} participant{leaderboard.total_entries !== 1 ? 's' : ''}
+          {$translate('quizDetail.participants_plural', {count: leaderboard.total_entries})}
         </p>
       {/if}
     </div>
@@ -330,11 +336,11 @@
           <div class="flex items-center gap-4">
             <div class="text-center">
               <div class="text-3xl font-bold text-[var(--color-warning-500)]">{reviewStats.avg_rating}</div>
-              <div class="text-xs opacity-40">out of 5</div>
+              <div class="text-xs opacity-40">{$translate('quizDetail.outOf5')}</div>
             </div>
             <div class="flex-1">
               <div class="flex gap-0.5 text-lg text-[var(--color-warning-500)]">{starLabel(Math.round(reviewStats.avg_rating))}</div>
-              <div class="mt-1 text-sm opacity-50">{reviewStats.total_ratings} rating{reviewStats.total_ratings !== 1 ? 's' : ''}</div>
+              <div class="mt-1 text-sm opacity-50">{$translate('quizDetail.ratings_plural', {count: reviewStats.total_ratings})}</div>
               <div class="mt-2 space-y-0.5">
                 {#each [5, 4, 3, 2, 1] as s}
                   <div class="flex items-center gap-2 text-xs">
@@ -356,7 +362,7 @@
 
       {#if $isLoggedIn}
         <div class="frame mb-4 p-4">
-          <h3 class="mb-3 font-semibold">{myRating ? 'Your Rating' : 'Rate this Quiz'}</h3>
+          <h3 class="mb-3 font-semibold">{myRating ? $translate('quizDetail.yourRating') : $translate('quizDetail.rateThisQuiz')}</h3>
           <div class="flex gap-1 text-2xl">
             {#each [1, 2, 3, 4, 5] as s}
               <button
@@ -368,7 +374,7 @@
           </div>
           <textarea
             bind:value={rvReview}
-            placeholder="Optional review..."
+            placeholder={$translate('quizDetail.optionalReview')}
             class="mt-3 w-full rounded-xl border border-[var(--color-surface-300-700)] bg-[var(--color-surface-50-950)] p-3 text-sm outline-none transition-colors focus:border-[var(--color-primary-500)]"
             rows="3"
           ></textarea>
@@ -378,19 +384,19 @@
             onclick={submitRating}
             disabled={rvSubmitting}
             class="btn-pill btn-pill-primary mt-3"
-          >{rvSubmitting ? 'Saving...' : 'Save Rating'}</button>
+          >{rvSubmitting ? $translate('quizDetail.saving') : $translate('quizDetail.saveRating')}</button>
         </div>
       {:else}
         <div class="frame mb-4 p-4 text-center">
-          <p class="text-sm opacity-50">Please <a href="/login" class="text-[var(--color-primary-500)]">log in</a> to rate this quiz.</p>
+          <p class="text-sm opacity-50">{$translate('quizDetail.pleaseLogIn', {loginLink: '<a href="/login" class="text-[var(--color-primary-500)]">' + $translate('quizDetail.logIn') + '</a>'})}</p>
         </div>
       {/if}
 
       {#if rvLoading}
-        <div class="flex justify-center py-6"><span class="text-sm opacity-40">Loading...</span></div>
+        <div class="flex justify-center py-6"><span class="text-sm opacity-40">{$translate('quizDetail.loading')}</span></div>
       {:else if reviews.length === 0}
         <div class="py-10 text-center">
-          <p class="text-sm opacity-50">No reviews yet.</p>
+          <p class="text-sm opacity-50">{$translate('quizDetail.noReviewsYet')}</p>
         </div>
       {:else}
         <div class="space-y-3">

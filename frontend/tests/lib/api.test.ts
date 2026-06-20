@@ -30,7 +30,7 @@ describe('API Client', () => {
     await api.listQuizzes();
 
     expect(mockFetch).toHaveBeenCalledWith(
-      '/api/quizzes',
+      '/api/quizzes?page=1&page_size=20',
       expect.objectContaining({
         headers: expect.objectContaining({
           Authorization: 'Bearer test-jwt',
