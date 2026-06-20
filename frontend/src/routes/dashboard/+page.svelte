@@ -6,6 +6,8 @@
 
   let quizzes: any[] = $state([]);
   let attempts: any[] = $state([]);
+  let profile: any = $state(null);
+  let badges: any[] = $state([]);
   let loading = $state(true);
   let error = $state('');
 
@@ -16,10 +18,17 @@
     }
 
     try {
-      const [quizPage, a] = await Promise.all([api.listQuizzes(), api.myAttempts()]);
+      const [quizPage, a, prof, b] = await Promise.all([
+        api.listQuizzes(),
+        api.myAttempts(),
+        api.getMyProfile().catch(() => null),
+        api.getAllBadges().catch(() => []),
+      ]);
       const allQuizzes = quizPage.items ?? quizPage;
       quizzes = allQuizzes.filter((quiz: any) => quiz.created_by === $currentUser?.id || $currentUser?.role === 'admin');
       attempts = a;
+      profile = prof;
+      badges = b.filter((bdg: any) => bdg.earned_at);
     } catch (e: any) {
       error = e.message;
     } finally {
@@ -81,6 +90,43 @@
         </span>
       </div>
     </div>
+
+    <!-- Gamification Profile Card -->
+    {#if profile}
+      <section class="mt-8">
+        <a href="/achievements" class="frame flex items-center gap-4 p-4 hover:ring-1 hover:ring-[var(--color-primary-500)]/30 transition-all">
+          <div class="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--color-surface-200-800)]">
+            <span class="text-2xl font-bold text-[var(--color-primary-500)]">{profile.level}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline gap-3">
+              <span class="font-semibold">{profile.xp} XP</span>
+              <span class="text-xs opacity-40">Level {profile.level}</span>
+              {#if profile.streak_count}
+                <span class="text-xs text-[var(--color-warning-500)]">{profile.streak_count}🔥 streak</span>
+              {/if}
+            </div>
+            <div class="mt-1 h-2 w-full max-w-xs overflow-hidden rounded-full bg-[var(--color-surface-200-800)]">
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-secondary-500)] transition-all"
+                style="width: {profile.xp % 100}%"
+              ></div>
+            </div>
+          </div>
+          {#if badges.length > 0}
+            <div class="hidden sm:flex items-center gap-1">
+              {#each badges.slice(0, 3) as badge}
+                <span class="text-lg" title={badge.name}>{badge.icon}</span>
+              {/each}
+              {#if badges.length > 3}
+                <span class="text-xs opacity-40">+{badges.length - 3}</span>
+              {/if}
+            </div>
+          {/if}
+          <span class="text-sm opacity-40">View →</span>
+        </a>
+      </section>
+    {/if}
 
     <!-- My Quizzes -->
     <section class="mt-10">

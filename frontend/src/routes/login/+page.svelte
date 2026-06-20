@@ -84,6 +84,9 @@
               placeholder="Enter your password"
               required
             />
+            <div class="mt-1 text-right">
+              <a href="/forgot-password" class="text-xs text-[var(--color-primary-500)] hover:underline opacity-60">Forgot password?</a>
+            </div>
           </div>
           <button
             type="submit"

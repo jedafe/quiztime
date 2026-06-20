@@ -68,6 +68,7 @@
 
         {#if $isLoggedIn}
           <a href="/dashboard" class="btn-pill btn-pill-ghost text-sm">Dashboard</a>
+          <a href="/achievements" class="btn-pill btn-pill-ghost text-sm">Achievements</a>
           <a href="/create" class="btn-pill btn-pill-primary ml-1 text-sm">Create Quiz</a>
 
           <!-- Avatar dropdown -->
@@ -123,6 +124,7 @@
                   <div class="text-xs opacity-50">{$currentUser?.role}</div>
                 </div>
                 <a href="/dashboard" class="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]" onclick={() => dropdownOpen = false}>Dashboard</a>
+                <a href="/achievements" class="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]" onclick={() => dropdownOpen = false}>Achievements</a>
                 <a href="/create" class="block px-4 py-2.5 text-sm transition-colors hover:bg-[var(--color-surface-200-800)]" onclick={() => dropdownOpen = false}>Create Quiz</a>
                 <button
                   class="w-full border-t border-[var(--color-surface-200-800)] px-4 py-2.5 text-left text-sm transition-colors hover:bg-[var(--color-surface-200-800)]"

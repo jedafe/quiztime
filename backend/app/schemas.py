@@ -22,6 +22,7 @@ class UserResponse(BaseModel):
     email: str
     role: str
     created_at: datetime
+    email_verified: bool = False
 
     class Config:
         from_attributes = True
@@ -299,4 +300,68 @@ class RatingResponse(BaseModel):
 class RatingStats(BaseModel):
     avg_rating: float
     total_ratings: int
-    distribution: dict[int, int]  # score -> count
+    distribution: dict[int, int]
+
+
+# ── Gamification ────────────────────────────────────────
+class BadgeResponse(BaseModel):
+    id: UUID
+    key: str
+    name: str
+    description: str
+    icon: str
+    earned_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class UserProfileResponse(BaseModel):
+    id: UUID
+    username: str
+    created_at: datetime
+    xp: int = 0
+    level: int = 1
+    streak_count: int = 0
+    badges: list[BadgeResponse] = []
+    email_verified: bool = False
+
+    class Config:
+        from_attributes = True
+
+
+class XpEventResponse(BaseModel):
+    id: UUID
+    source: str
+    amount: int
+    quiz_id: Optional[UUID] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class XpLeaderboardEntry(BaseModel):
+    rank: int
+    username: str
+    user_id: UUID
+    xp: int
+    level: int
+
+
+# ── Email / Verification ────────────────────────────────
+class EmailVerificationRequest(BaseModel):
+    token: str
+
+
+class PasswordResetRequest(BaseModel):
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str = Field(min_length=6)
+
+
+class MessageResponse(BaseModel):
+    message: str

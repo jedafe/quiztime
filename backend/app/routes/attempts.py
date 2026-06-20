@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models import QuizAttempt, Quiz, Question, User, Challenge
 from app.schemas import AttemptSubmit, AttemptResponse, QuizStats
 from app.auth import get_current_user
+from app.gamification import award_xp, update_streak, check_and_award_badges
 
 router = APIRouter(prefix="/api/attempts", tags=["attempts"])
 
@@ -62,7 +63,19 @@ async def submit_attempt(
         if challenge:
             challenge.challengee_attempt_id = attempt.id
             challenge.status = "completed"
-            await db.commit()
+
+    # Award XP
+    xp_amount = 10 * total
+    if score == total:
+        xp_amount += 50
+    leveled_up = await award_xp(db, user, "quiz_complete", xp_amount, quiz_id=data.quiz_id, attempt_id=attempt.id)
+    streak = await update_streak(db, user)
+    badges = await check_and_award_badges(db, user, "quiz_complete", attempt_id=attempt.id)
+    if streak >= 7:
+        await check_and_award_badges(db, user, "streak", streak=streak)
+    if leveled_up:
+        await check_and_award_badges(db, user, "level_up", level=user.level)
+    await db.commit()
 
     return attempt
 

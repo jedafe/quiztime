@@ -104,6 +104,15 @@ npm run dev
 | GET | /api/challenges/{code} | No | Get challenge |
 | POST | /api/challenges/{code}/accept | Yes | Accept challenge |
 | GET | /api/challenges/{code}/result | No | Challenge comparison result |
+| POST | /api/email/verify | No | Verify email with token |
+| POST | /api/email/resend-verification | Yes | Resend verification email |
+| POST | /api/email/forgot-password | No | Request password reset |
+| POST | /api/email/reset-password | No | Reset password with token |
+| GET | /api/gamification/my-profile | Yes | Current user's XP/profile/streak |
+| GET | /api/gamification/profile/{id} | No | Any user's gamification profile |
+| GET | /api/gamification/xp-history | Yes | Paginated XP event history |
+| GET | /api/gamification/badges | No | All badges with earned status |
+| GET | /api/gamification/leaderboard | No | XP leaderboard (top users) |
 
 Visit http://localhost:8000/docs for interactive Swagger documentation.
 
@@ -116,9 +125,11 @@ Visit http://localhost:8000/docs for interactive Swagger documentation.
 │   │   ├── main.py          # FastAPI app + CORS
 │   │   ├── config.py        # Settings (env-based)
 │   │   ├── database.py      # SQLAlchemy async engine
-│   │   ├── models.py        # DB models (User, Quiz, Question, etc.)
+│   │   ├── models.py        # DB models (User, Quiz, Question, Badge, etc.)
 │   │   ├── schemas.py       # Pydantic request/response schemas
 │   │   ├── auth.py          # JWT auth + password hashing
+│   │   ├── gamification.py  # XP/streak/badge logic
+│   │   ├── email_service.py # Token gen + SMTP email sending
 │   │   └── routes/          # API endpoints
 │   │       ├── auth.py      # Register, login, /me
 │   │       ├── quizzes.py   # Quiz CRUD
@@ -126,7 +137,9 @@ Visit http://localhost:8000/docs for interactive Swagger documentation.
 │   │       ├── categories.py# Category management
 │   │       ├── attempts.py  # Quiz submission + stats
 │   │       ├── share.py     # Share link creation + OG cards
-│   │       └── challenges.py# Challenge system
+│   │       ├── challenges.py# Challenge system
+│   │       ├── gamification.py # XP/profile/badges/leaderboard
+│   │       └── email.py     # Verify/resend/forgot/reset
 │   ├── seed.py              # Seed demo data
 │   ├── requirements.txt
 │   └── Dockerfile
@@ -157,3 +170,5 @@ Visit http://localhost:8000/docs for interactive Swagger documentation.
 - Shareable result links with OG image cards
 - Challenge system (score-to-beat, accept, compare results)
 - Per-quiz leaderboard with period filtering (today/week/month/all)
+- Gamification: XP, levels, daily streak, 6 badges, achievements page
+- Email verification and password reset flow

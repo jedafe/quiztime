@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import User
 from app.schemas import UserCreate, UserLogin, UserResponse, Token
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
+from app.email_service import send_verification_email
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -25,6 +26,11 @@ async def register(data: UserCreate, db: AsyncSession = Depends(get_db)):
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
+    try:
+        await send_verification_email(db, user)
+    except Exception:
+        pass
 
     token = create_access_token(data={"sub": str(user.id)})
     return Token(access_token=token, user=UserResponse.model_validate(user))

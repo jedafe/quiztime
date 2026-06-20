@@ -1,7 +1,8 @@
 import asyncio
 import uuid
+from sqlalchemy import select
 from app.database import get_session_factory, get_engine, Base
-from app.models import User, Category, Quiz, Question
+from app.models import User, Category, Quiz, Question, BadgeDefinition
 from app.auth import hash_password
 
 
@@ -135,6 +136,20 @@ async def seed():
             db.add(cat)
             cats[name] = cat
         await db.flush()
+
+        # Seed badges
+        badges_data = [
+            {"key": "first_quiz", "name": "First Quiz", "description": "Complete your first quiz", "icon": "🎯"},
+            {"key": "perfect_score", "name": "Perfect Score", "description": "Get 100% on any quiz", "icon": "💯"},
+            {"key": "quiz_creator", "name": "Quiz Creator", "description": "Create 5 quizzes", "icon": "✍️"},
+            {"key": "streak_master", "name": "Streak Master", "description": "Maintain a 7-day streak", "icon": "🔥"},
+            {"key": "knowledge_seeker", "name": "Knowledge Seeker", "description": "Complete 50 quizzes", "icon": "📚"},
+            {"key": "centurion", "name": "Centurion", "description": "Reach level 10", "icon": "🏅"},
+        ]
+        for b in badges_data:
+            existing = await db.execute(select(BadgeDefinition).where(BadgeDefinition.key == b["key"]))
+            if not existing.scalar_one_or_none():
+                db.add(BadgeDefinition(**b))
 
         # Seed quiz
         quiz = Quiz(

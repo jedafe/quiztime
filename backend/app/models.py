@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 from sqlalchemy import (
-    Column, String, Text, Integer, Float, ForeignKey, DateTime, JSON, Index
+    Column, String, Text, Integer, Float, ForeignKey, DateTime, JSON, Index, Boolean
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -33,9 +33,15 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     role = Column(String(20), default=UserRole.user, nullable=False)
     created_at = Column(DateTime, default=utcnow)
+    xp = Column(Integer, default=0, nullable=False)
+    level = Column(Integer, default=1, nullable=False)
+    streak_count = Column(Integer, default=0, nullable=False)
+    last_activity_date = Column(DateTime, nullable=True)
+    email_verified = Column(Boolean, default=False, nullable=False)
 
     quizzes = relationship("Quiz", back_populates="owner", cascade="all, delete-orphan")
     attempts = relationship("QuizAttempt", back_populates="user", cascade="all, delete-orphan")
+    badges = relationship("UserBadge", back_populates="user", cascade="all, delete-orphan")
 
 
 class Category(Base):
@@ -141,6 +147,64 @@ class Rating(Base):
     created_at = Column(DateTime, default=utcnow)
 
     quiz = relationship("Quiz", back_populates="ratings")
+    user = relationship("User")
+
+
+class BadgeDefinition(Base):
+    __tablename__ = "badge_definitions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    key = Column(String(50), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    description = Column(String(255), nullable=False)
+    icon = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=utcnow)
+
+    awards = relationship("UserBadge", back_populates="badge")
+
+
+class UserBadge(Base):
+    __tablename__ = "user_badges"
+    __table_args__ = (
+        Index("ix_user_badges_user_id", "user_id"),
+        Index("ix_user_badges_user_badge", "user_id", "badge_id", unique=True),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    badge_id = Column(UUID(as_uuid=True), ForeignKey("badge_definitions.id"), nullable=False)
+    earned_at = Column(DateTime, default=utcnow)
+
+    user = relationship("User", back_populates="badges")
+    badge = relationship("BadgeDefinition", back_populates="awards")
+
+
+class XpEvent(Base):
+    __tablename__ = "xp_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    source = Column(String(50), nullable=False)
+    amount = Column(Integer, nullable=False)
+    quiz_id = Column(UUID(as_uuid=True), ForeignKey("quizzes.id"), nullable=True)
+    attempt_id = Column(UUID(as_uuid=True), ForeignKey("quiz_attempts.id"), nullable=True)
+    created_at = Column(DateTime, default=utcnow)
+
+
+class EmailToken(Base):
+    __tablename__ = "email_tokens"
+    __table_args__ = (
+        Index("ix_email_tokens_user_id", "user_id"),
+    )
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    token = Column(String(128), unique=True, nullable=False, index=True)
+    type = Column(String(20), nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    used = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=utcnow)
+
     user = relationship("User")
 
 

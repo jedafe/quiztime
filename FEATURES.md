@@ -51,16 +51,24 @@ After finishing a quiz, users can:
 ## Tier 3 — Retention & Engagement
 
 ### 5. Gamification (XP, Levels, Badges)
+**Status**: ✅ Implemented
+
 - XP from creating/completing quizzes, perfect scores, streaks
-- Levels that unlock cosmetic rewards or features
-- Badges: "First Quiz", "Perfect Score", "Quiz Creator", "Streak Master", "Knowledge Seeker"
-- Dedicated Achievements page
-- Display badges on user profiles
+- Levels (linear: level = floor(xp / 100) + 1)
+- 6 badges: "First Quiz", "Perfect Score", "Quiz Creator", "Streak 3", "Streak 7", "Streak 30"
+- Daily streak tracking with streak-based badges
+- Dedicated Achievements page (`/achievements`) with badges grid, XP history, progress bar
+- Dashboard profile card showing XP, level, streak, and earned badges
+- Leaderboard endpoint ranking users by total XP
 
 ### 6. Email System
-- Email verification on registration (reduces spam bots)
-- Password reset flow (reduces churn from forgotten passwords)
-- Optional weekly digest ("Most popular quizzes this week")
+**Status**: ✅ Implemented
+
+- Email verification on registration (verify link with 48h expiry)
+- Resend verification email endpoint
+- Password reset flow (forgot-password sends link, reset-password with 1h expiry)
+- Frontend pages: `/verify-email`, `/forgot-password`, `/reset-password`
+- Fire-and-forget email sending (registration doesn't block on SMTP failure)
 
 ---
 

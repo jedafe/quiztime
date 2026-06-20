@@ -10,8 +10,8 @@ See [FEATURES.md](./FEATURES.md) for the full planned feature roadmap. Each feat
 | Tier 1 | Public Leaderboards | `leaderboard-feature.md` |
 | Tier 2 | Search, Filtering & Sorting | `search-filter-sort-feature.md` |
 | Tier 2 | Ratings & Reviews | `ratings-reviews-feature.md` |
-| Tier 3 | Gamification (XP/Badges) | — |
-| Tier 3 | Email System | — |
+| Tier 3 | Gamification (XP/Badges) | `gamification-xp-badges-feature.md` |
+| Tier 3 | Email System | `email-system-feature.md` |
 | Tier 4 | Embeddable Quizzes | — |
 | Tier 4 | Quiz Import/Export | — |
 | Tier 5 | Multi-Language / i18n | — |
@@ -117,14 +117,27 @@ All endpoints prefixed with `/api/`:
 | `POST /attempts` | Yes | Submit quiz attempt |
 | `GET /attempts/mine` | Yes | User's attempt history |
 | `GET /attempts/quiz/{id}/stats` | No | Quiz statistics |
+| `POST /email/verify` | No | Verify email with token |
+| `POST /email/resend-verification` | Yes | Resend verification email |
+| `POST /email/forgot-password` | No | Request password reset |
+| `POST /email/reset-password` | No | Reset password with token |
+| `GET /gamification/my-profile` | Yes | Current user's XP/profile/streak |
+| `GET /gamification/profile/{id}` | No | Any user's gamification profile |
+| `GET /gamification/xp-history` | Yes | Paginated XP event history |
+| `GET /gamification/badges` | No | All badges with earned status |
+| `GET /gamification/leaderboard` | No | XP leaderboard (top users) |
 
 ## Data Model
 
-- **User**: id, username, email, hashed_password, role (`admin`|`user`)
+- **User**: id, username, email, hashed_password, role (`admin`|`user`), xp, level, streak_count, last_activity_date, email_verified
 - **Quiz**: id, title, description, created_by FK
 - **Question**: id, quiz_id FK, category_id FK, type, text, options (JSON), answer (JSON)
 - **Category**: id, name
 - **QuizAttempt**: id, quiz_id FK, user_id FK, answers (JSON), score, total, time_spent
+- **BadgeDefinition**: id, name, description, icon, criteria (JSON)
+- **UserBadge**: user_id FK, badge_id FK, earned_at
+- **XpEvent**: id, user_id FK, source, amount, created_at
+- **EmailToken**: id, user_id FK, token, type, expires_at, used
 
 ## Frontend Routes
 
@@ -138,8 +151,12 @@ All endpoints prefixed with `/api/`:
 | `/quizzes/[id]/take` | Quiz player (timer, check, skip) |
 | `/quizzes/[id]/results` | Score + grade display |
 | `/quizzes/[id]/edit` | Edit quiz + manage questions |
-| `/dashboard` | User's quizzes + attempt history |
+| `/dashboard` | User's quizzes + attempt history + XP profile card |
+| `/achievements` | Badges gallery + XP history + level progress |
 | `/create` | Create new quiz |
+| `/verify-email` | Email verification (accepts `?token=`) |
+| `/forgot-password` | Request password reset |
+| `/reset-password` | Reset password (accepts `?token=`) |
 | `/docs` | Documentation hub |
 | `/docs/developer` | Developer guide |
 | `/docs/admin` | Admin guide |

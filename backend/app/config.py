@@ -8,6 +8,12 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
     CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASS: str = ""
+    SMTP_FROM: str = "noreply@quiztime.app"
+    FRONTEND_URL: str = "http://localhost:5173"
 
     class Config:
         # Checks CWD (.env) and project root (../.env) for convenience.

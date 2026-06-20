@@ -12,6 +12,7 @@ from app.schemas import (
     RatingStats,
 )
 from app.auth import get_current_user, require_admin
+from app.gamification import award_xp, check_and_award_badges
 
 router = APIRouter(prefix="/api/quizzes", tags=["quizzes"])
 
@@ -108,6 +109,13 @@ async def create_quiz(
     db.add(quiz)
     await db.commit()
     await db.refresh(quiz)
+
+    leveled_up = await award_xp(db, user, "quiz_created", 25, quiz_id=quiz.id)
+    badges = await check_and_award_badges(db, user, "quiz_created")
+    if leveled_up:
+        await check_and_award_badges(db, user, "level_up", level=user.level)
+    await db.commit()
+
     return QuizResponse(
         id=quiz.id, title=quiz.title, description=quiz.description,
         created_by=quiz.created_by, created_at=quiz.created_at, question_count=0,

@@ -154,6 +154,41 @@ function buildApi(fetchFn: FetchFn) {
 
     deleteRating: (ratingId: string) =>
       request<void>(fetchFn, `/ratings/${ratingId}`, { method: 'DELETE' }),
+
+    // ── Gamification ────────────────────────────────────
+    getMyProfile: () =>
+      request<any>(fetchFn, '/gamification/my-profile'),
+
+    getUserProfile: (userId: string) =>
+      request<any>(fetchFn, `/gamification/profile/${userId}`),
+
+    getXpHistory: (page = 1, pageSize = 20) =>
+      request<{ items: any[]; total: number }>(fetchFn, `/gamification/xp-history?page=${page}&page_size=${pageSize}`),
+
+    getAllBadges: () =>
+      request<any[]>(fetchFn, '/gamification/badges'),
+
+    getXpLeaderboard: (limit = 50) =>
+      request<any[]>(fetchFn, `/gamification/leaderboard?limit=${limit}`),
+
+    // ── Email / Verification ────────────────────────────
+    verifyEmail: (token: string) =>
+      request<{ message: string }>(fetchFn, '/email/verify', {
+        method: 'POST', body: JSON.stringify({ token }),
+      }),
+
+    resendVerification: () =>
+      request<{ message: string }>(fetchFn, '/email/resend-verification', { method: 'POST' }),
+
+    forgotPassword: (email: string) =>
+      request<{ message: string }>(fetchFn, '/email/forgot-password', {
+        method: 'POST', body: JSON.stringify({ email }),
+      }),
+
+    resetPassword: (token: string, newPassword: string) =>
+      request<{ message: string }>(fetchFn, '/email/reset-password', {
+        method: 'POST', body: JSON.stringify({ token, new_password: newPassword }),
+      }),
   };
 }
 
